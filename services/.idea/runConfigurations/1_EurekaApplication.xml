@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="1_EurekaApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <module name="eureka-server.main" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.coliving.platform.EurekaApplication" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

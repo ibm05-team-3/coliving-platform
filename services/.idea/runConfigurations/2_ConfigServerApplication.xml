@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="2_ConfigServerApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <module name="config-server.main" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.coliving.platform.ConfigServerApplication" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

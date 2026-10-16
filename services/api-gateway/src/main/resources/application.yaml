@@ -1,0 +1,32 @@
+server:
+  port: 8081
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost:8761/eureka/
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+            - id: user-service
+              predicates:
+                - Path=/user-service/user/**, /user-service/admin/**
+              filters:
+                - StripPrefix=1
+              uri: lb://user-service
+
+            - id: user-oauth
+              predicates:
+                - Path=/login/oauth2/**
+              uri: lb://user-service
+
+auth:
+  access-token-issuer: user-service
+  access-token-key-id: es256-2026
+  access-token-public: ${JWT_SECRET:-----BEGIN PUBLIC KEY-----MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE7wOxzOM9xtHw9RvbS19kvJeoioQxiI9vA5BfCEUAkO4bzjy+ODGws6oL7Vv6Dv0YXGdwLqmIkrn6RKujHYoH7g==-----END PUBLIC KEY-----}
