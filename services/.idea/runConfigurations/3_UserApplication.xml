@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="3_UserApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <module name="user-service.main" />
+    <option name="SHORTEN_COMMAND_LINE" value="ARGS_FILE" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.coliving.platform.UserApplication" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
