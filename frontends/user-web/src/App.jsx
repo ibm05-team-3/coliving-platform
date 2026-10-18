@@ -1,14 +1,13 @@
-import { Routes, Route, Link } from 'react-router'
-
+import { Routes, Route } from 'react-router'
+import LoginPage from './pages/user/LoginPage'
 
 function App() {
   return (
-    <>
-      <h1 className="text-3xl font-bold text-blue-600">Hello Tailwind!</h1>
-      {/* BrowserRouter 는 main.jsx 에 존재합니다. */}
-      <Routes>
-      </Routes>
-    </>
+    // BrowserRouter 는 main.jsx 에 존재합니다.
+    <Routes>
+      <Route path="/" element={<LoginPage />} />
+      <Route path="/login" element={<LoginPage />} />
+    </Routes>
   )
 }
 
