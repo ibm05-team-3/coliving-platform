@@ -46,3 +46,6 @@ CREATE TABLE user_social_accounts (
 SELECT * FROM users;
 SELECT * FROM user_roles;
 SELECT * FROM user_social_accounts;
+
+
+CREATE DATABASE user_service ENCODING 'UTF8';
