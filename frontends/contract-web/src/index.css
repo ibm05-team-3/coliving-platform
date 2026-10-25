@@ -1,0 +1,32 @@
+@import "tailwindcss";
+
+/* CoLiv 공통 스타일 토큰 (팀장 화면 기준).
+   팀 공통 Tailwind 설정이 정해지면 이 블록만 교체하면 된다. */
+@theme {
+  --font-sans: "Noto Sans KR", "Noto Sans CJK KR", system-ui, sans-serif;
+
+  --color-page: #f2f3ef;        /* 페이지 배경 */
+  --color-header: #e3e8e2;      /* 상단 헤더 */
+  --color-surface: #ffffff;     /* 카드 */
+  --color-soft: #e9ede8;        /* 옅은 강조 면 (선택 상태, 금액 박스) */
+  --color-line: #dfe3dd;        /* 테두리·구분선 */
+
+  --color-ink: #262c28;         /* 본문 진한 글자 */
+  --color-sub: #5d655f;         /* 보조 글자 */
+  --color-muted: #8c938e;       /* 흐린 글자 */
+
+  --color-primary: #5e756a;     /* 주요 버튼 */
+  --color-primary-strong: #4b6157;
+  --color-primary-soft: #dce5df;
+
+  --color-ok-bg: #dbeadb;       /* 초록 상태 배지 */
+  --color-ok-fg: #3f6a4b;
+  --color-warn-bg: #f1e4cf;     /* 황토 상태 배지 */
+  --color-warn-fg: #8a6638;
+  --color-warn-line: #e3c9a2;
+}
+
+body {
+  background: var(--color-page);
+  color: var(--color-ink);
+}

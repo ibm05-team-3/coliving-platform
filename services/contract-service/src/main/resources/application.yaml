@@ -1,11 +1,10 @@
 server:
-  port: 8082
+  port: 8083        # 팀 포트 배정표 확인 필요 (8082는 user-service)
 
 spring:
   application:
     name: contract-service
   config:
     import: "optional:configserver:http://localhost:8888/"
-    fail-fast: true
   profiles:
     active: dev
