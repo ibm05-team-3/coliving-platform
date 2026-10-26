@@ -34,7 +34,7 @@ React + Tailwind CSS로 [화면 이름]을 구현해줘.
 
 메뉴를 추가할 때는 `src/navigation.js`만 수정합니다. 사이드바 컴포넌트나 라우트 파일은 수정하지 않습니다.
 
-이 파일의 배열 순서가 사이드바에 보이는 순서입니다. 각 항목은 화면 이름(`label`)과 주소(`to`)입니다.
+이 파일의 배열 순서가 사이드바에 보이는 순서입니다. 각 항목은 화면 이름(`label`), 주소(`to`), 페이지(`page`)입니다. 페이지가 아직 없으면 `page`에 `ScreenPage`를 넣습니다.
 
 운영 메뉴에 공지를 넣는다면 `items` 안에 한 줄을 추가합니다.
 
@@ -42,39 +42,30 @@ React + Tailwind CSS로 [화면 이름]을 구현해줘.
 {
   label: '운영',
   items: [
-    { label: '달력', to: '/operations/calendar' },
-    { label: '입주자', to: '/operations/residents' },
-    { label: '상담', to: '/operations/consultations' },
-    { label: 'FAQ', to: '/operations/faq' },
-    { label: '공지', to: '/operations/notices' },
+    { label: '달력', to: '/operations/calendar', page: ScreenPage },
+    { label: '입주자', to: '/operations/residents', page: ScreenPage },
+    { label: '상담', to: '/operations/consultations', page: ScreenPage },
+    { label: 'FAQ', to: '/operations/faq', page: ScreenPage },
+    { label: '공지', to: '/operations/notices', page: ScreenPage },
   ],
 },
 ```
 
-저장하면 사이드바에 공지가 생기고, `/operations/notices`로 들어가면 제목이 공지인 빈 화면이 나옵니다. 본문에는 "표시할 내용이 없습니다."라고 표시됩니다. 라우트는 `App.jsx`가 이 목록으로 만듭니다.
+저장하면 사이드바에 공지가 생기고, `/operations/notices`는 `ScreenPage`가 열립니다. 제목은 공지이고, 본문에는 "표시할 내용이 없습니다."라고 표시됩니다. 라우트는 `App.jsx`가 이 목록의 `page`로 만듭니다.
 
 문서, 운영 같은 새 묶음이 필요하면 객체를 하나 더 추가합니다.
 
 ```js
 {
   label: '정산',
-  items: [{ label: '청구', to: '/billing/invoices' }],
+  items: [{ label: '청구', to: '/billing/invoices', page: ScreenPage }],
 },
 ```
 
 - `to`는 기존 메뉴와 다르게 적습니다.
 - `/login`은 이 목록에 넣지 않습니다. 로그인 화면에는 사이드바가 없습니다.
-- 빈 화면을 실제 화면으로 바꿀 때는 메뉴 항목은 그대로 두고, `App.jsx`에서 그 주소만 `ScreenPage` 대신 본인 페이지로 연결합니다.
+- 빈 화면을 실제 화면으로 바꿀 때는 그 항목의 `page`만 바꿉니다. `App.jsx`는 수정하지 않습니다.
 
-```jsx
-<Route element={<AdminLayout />}>
-  <Route path="/operations/notices" element={<NoticesPage />} />
-  {screens
-    .filter((screen) => screen.to !== '/operations/notices')
-    .map((screen) => (
-      <Route key={screen.to} path={screen.to} element={<ScreenPage title={screen.label} />} />
-    ))}
-</Route>
+```js
+{ label: '공지', to: '/operations/notices', page: NoticesPage },
 ```
-
-`filter`로 그 주소를 빼지 않으면 같은 주소가 두 번 등록되어, 빈 화면이 실제 페이지를 덮을 수 있습니다.

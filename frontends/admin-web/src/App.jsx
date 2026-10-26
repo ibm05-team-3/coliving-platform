@@ -2,7 +2,7 @@ import { Route, Routes } from 'react-router'
 import AdminLayout from './components/AdminLayout'
 import LoginPage from './pages/LoginPage'
 import ScreenPage from './pages/ScreenPage'
-import { screens } from './navigation'
+import { notFoundScreen, screens } from './navigation'
 
 function App() {
   return (
@@ -11,9 +11,11 @@ function App() {
     <Routes>
       <Route path="/login" element={<LoginPage />} />
       <Route element={<AdminLayout />}>
-        {screens.map((screen) => (
-          <Route key={screen.to} path={screen.to} element={<ScreenPage title={screen.label} />} />
-        ))}
+        {screens.map((screen) => {
+          const Page = screen.page
+          return <Route key={screen.to} path={screen.to} element={<Page title={screen.label} />} />
+        })}
+        <Route path={notFoundScreen.to} element={<ScreenPage title={notFoundScreen.label} />} />
       </Route>
     </Routes>
   )
