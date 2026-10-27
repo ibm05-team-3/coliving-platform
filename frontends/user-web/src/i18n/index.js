@@ -2,8 +2,10 @@ import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 import enCommon from './locales/en/common.json'
 import enLogin from './locales/en/login.json'
+import enCommunity from './locales/en/community.json'
 import koCommon from './locales/ko/common.json'
 import koLogin from './locales/ko/login.json'
+import koCommunity from './locales/ko/community.json'
 
 export const LOCALES = ['ko', 'en']
 
@@ -44,13 +46,13 @@ export async function initI18n() {
 
   await i18n.use(initReactI18next).init({
     resources: {
-      ko: { common: koCommon, login: koLogin },
-      en: { common: enCommon, login: enLogin },
+      ko: { common: koCommon, login: koLogin, community: koCommunity },
+      en: { common: enCommon, login: enLogin, community: enCommunity },
     },
     lng: locale,
     fallbackLng: 'ko',
     supportedLngs: LOCALES,
-    ns: ['common', 'login'],
+    ns: ['common', 'login', 'community'],
     defaultNS: 'common',
     interpolation: { escapeValue: false },
     react: { useSuspense: false },

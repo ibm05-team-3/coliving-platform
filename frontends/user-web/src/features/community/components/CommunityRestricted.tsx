@@ -1,0 +1,3 @@
+import { Icon } from "."
+import { useTranslation } from "react-i18next"
+export function CommunityRestricted() { const { t } = useTranslation("community"); return <main className="px-4 py-6 sm:px-8 md:px-12"><section className="flex min-h-80 flex-col items-center justify-center rounded-lg border border-main/15 bg-white p-8 text-center"><span className="rounded-full bg-main/10 p-4 text-main"><Icon name="lock" size={30} /></span><h1 className="mt-5 text-2xl font-semibold text-main sm:text-3xl">{t("restricted.title")}</h1><p className="mt-3 text-sm text-text/70">{t("restricted.description")}</p></section></main> }

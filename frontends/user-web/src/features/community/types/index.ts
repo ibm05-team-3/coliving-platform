@@ -1,0 +1,43 @@
+export type UserRole = "RESIDENT" | "MEMBER"
+export type PostCategory = "NOTICE" | "FREE" | "SHARE" | "MEETUP"
+export type ContentStatus = "ACTIVE" | "HIDDEN" | "DELETED"
+export type ReportSourceType = "CHAT_ROOM" | "POST"
+export type ReportTargetType = "POST" | "COMMENT" | "CHAT_MESSAGE" | "USER"
+export type ReportReason = "ABUSE" | "HARASSMENT" | "PRIVACY" | "SPAM" | "INAPPROPRIATE" | "HOUSE_RULE" | "ETC"
+export type ReportStatus = "RECEIVED" | "RESOLVED" | "REJECTED"
+export type SanctionType = "WARNING" | "RESTRICTION" | "SUSPENSION"
+
+export type CommunityPostSummary = { postId: number; category: PostCategory; title: string; authorId?: number; authorName: string; authorRoomNumber?: string; viewCount: number; commentCount: number; createdAt: string; isNew?: boolean }
+export type CommunityPostListResponse = { buildingName: string; pinned: CommunityPostSummary[]; content: CommunityPostSummary[]; page: number; size: number; totalElements: number; totalPages: number }
+export type CommunityReply = { commentId: number; authorId: number | null; authorName: string | null; authorRoomNumber?: string | null; content: string | null; status: ContentStatus; blocked: boolean; isMine: boolean; createdAt: string }
+export type CommunityComment = { commentId: number; authorId: number | null; authorName: string | null; authorRoomNumber?: string | null; content: string | null; status: ContentStatus; blocked: boolean; isMine: boolean; createdAt: string; replies: CommunityReply[] }
+export type CommunityPostDetail = { postId: number; category: PostCategory; title: string; content: string; authorId: number | null; authorName: string; authorRoomNumber: string | null; viewCount: number; createdAt: string; updatedAt: string | null; isMine: boolean; blocked: boolean; comments: CommunityComment[] }
+export type CommunityPostRequest = { category: Exclude<PostCategory, "NOTICE">; title: string; content: string }
+export type CommunityPostCreateResponse = { postId: number }
+export type CommunityCommentRequest = { content: string; parentCommentId: number | null }
+export type CommunityCommentCreateResponse = { commentId: number; createdAt: string }
+
+export type CreateReportRequest = { sourceType: ReportSourceType; sourceId: number; targetType: ReportTargetType; targetId: string; reasonType: ReportReason; reasonDetail?: string | null }
+export type CreateReportResponse = { reportId: number; status: ReportStatus; createdAt: string }
+export type BlockedUser = { blockedUserId: number; name: string; roomNumber: string | null; profileImageUrl: string | null; blockedAt: string }
+export type BlockListResponse = { blocks: BlockedUser[] }
+export type CreateBlockRequest = { blockedUserId: number }
+export type CreateBlockResponse = { blockedUserId: number; blockedAt: string }
+export type MySanction = { active: boolean; sanctionId: number | null; sanctionType: SanctionType | null; durationDays: number | null; reason: string | null; startsAt: string | null; endsAt: string | null }
+export type ChatRoomResponse = { roomId: string; created: boolean }
+export type FaqItem = { id: number; category: "비용" | "입주" | "계약" | "시설"; question: string; answer: string; branch: string; enabled: boolean }
+export type UserNote = { noteId: number; senderType: "USER" | "ADMIN"; senderName: string; content: string; createdAt: string; readAt: string | null }
+export type UserNoteListResponse = { unreadCount: number; content: UserNote[]; page: number; size: number; totalElements: number; totalPages: number }
+export type GuestInquiryRequest = { name: string; phone: string; email: string; content: string; privacyAgreed: boolean }
+export type ChatPartner = { userId: number; name: string; profileImageUrl: string | null; roomNumber: string }
+export type ChatRoom = { roomId: string; partner: ChatPartner; lastMessage: string; lastMessageAt: string; unreadCount: number; readOnly: boolean }
+export type ChatMessage = { messageId: string; senderId: number; content: string; sentAt: string }
+export type ChatMessageListResponse = { messages: ChatMessage[]; hasMore: boolean }
+export type NotificationType = "NOTE" | "CHAT" | "COMMENT" | "REPLY"
+export type NotificationTargetType = "NOTE" | "CHAT_ROOM" | "POST"
+export type UserNotification = { notificationId: number; type: NotificationType; title: string; message: string; targetType: NotificationTargetType; targetId: string; createdAt: string; read: boolean }
+export type NotificationListResponse = { content: UserNotification[]; page: number; size: number; totalElements: number; totalPages: number }
+export type UnreadNotificationSummary = { note: number; chat: number; total: number }
+
+export const reportReasonLabels: Record<ReportReason, string> = { ABUSE: "욕설·비방", HARASSMENT: "괴롭힘·스토킹", PRIVACY: "개인정보 노출", SPAM: "광고·도배", INAPPROPRIATE: "음란·부적절", HOUSE_RULE: "생활 규칙 위반", ETC: "기타" }
+export const categoryLabels: Record<PostCategory, string> = { NOTICE: "공지", FREE: "자유", SHARE: "나눔", MEETUP: "모임" }

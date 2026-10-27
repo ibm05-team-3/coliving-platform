@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router'
 import { navigation } from '../navigation'
+import { useNavBadges } from '../features/community/hooks/useNavBadges'
 
 const DESKTOP_QUERY = '(min-width: 1024px)'
 
@@ -8,6 +9,7 @@ function AdminLayout() {
   const location = useLocation()
   const [menuPath, setMenuPath] = useState(null)
   const [isDesktop, setIsDesktop] = useState(() => window.matchMedia(DESKTOP_QUERY).matches)
+  const badgeCounts = useNavBadges()
   const open = menuPath === location.pathname
   const sidebarVisible = isDesktop || open
 
@@ -76,12 +78,17 @@ function AdminLayout() {
                       to={item.to}
                       end
                       className={({ isActive }) =>
-                        `block rounded-lg px-3 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
+                        `flex items-center rounded-lg px-3 py-2 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
                           isActive ? 'bg-background text-main' : 'text-background/90 hover:bg-white/10'
                         }`
                       }
                     >
-                      {item.label}
+                      <span>{item.label}</span>
+                      {badgeCounts[item.to] > 0 && (
+                        <span className="ml-auto inline-flex min-w-5 h-5 items-center justify-center rounded-full bg-accent px-1.5 text-xs font-semibold text-text">
+                          {badgeCounts[item.to] > 99 ? '99+' : badgeCounts[item.to]}
+                        </span>
+                      )}
                     </NavLink>
                   </li>
                 ))}
