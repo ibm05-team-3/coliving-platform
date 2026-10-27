@@ -16,10 +16,11 @@ export const navigation = [
   {
     label: '운영',
     items: [
-      { label: '달력', to: '/operations/calendar', page: ScreenPage },
-      { label: '입주자', to: '/operations/residents', page: ScreenPage },
-      { label: '상담', to: '/operations/consultations', page: ScreenPage },
-      { label: 'FAQ', to: '/operations/faq', page: ScreenPage },
+      { label: '입주자 관리', to: '/operations/residents', page: ScreenPage },
+      { label: '입주·퇴거 달력', to: '/operations/calendar', page: ScreenPage },
+      { label: '쪽지함', to: '/operations/messages', page: ScreenPage },
+      { label: '신고 관리', to: '/operations/reports', page: ScreenPage },
+      { label: 'FAQ봇', to: '/operations/faq', page: ScreenPage },
     ],
   },
   {
@@ -27,10 +28,11 @@ export const navigation = [
     items: [{ label: '속성', to: '/buildings/attributes', page: ScreenPage }],
   },
   {
-    label: '공용 자원 예약',
+    label: '공용 자원',
     items: [
-      { label: '공용 자원', to: '/resources', page: ScreenPage },
-      { label: '예약 조회', to: '/resources/reservations', page: ScreenPage },
+      { label: '공용 자원 관리', to: '/resources', page: ScreenPage },
+      { label: '예약 관리', to: '/resources/reservations', page: ScreenPage },
+      { label: '연체 관리', to: '/resources/overdue', page: ScreenPage },
     ],
   },
 ]
