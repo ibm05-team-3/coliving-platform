@@ -1,4 +1,10 @@
 import ScreenPage from './pages/ScreenPage'
+import CalendarPage from './features/community/pages/CalendarPage'
+import FaqBotPage from './features/community/pages/FaqBotPage'
+import NotesPage from './features/community/pages/NotesPage'
+import ReportsPage from './features/community/pages/ReportsPage'
+import ResidentsPage from './features/community/pages/ResidentsPage'
+import { getAdminNoteBadgeCount, getAdminReportBadgeCount } from './features/community/api'
 
 // 로그인(/login)은 이 목록에 넣지 않습니다. 그 화면은 AdminLayout 밖에 둡니다.
 // page는 그 주소의 화면입니다. 아직 화면이 없으면 ScreenPage를 넣습니다.
@@ -16,11 +22,11 @@ export const navigation = [
   {
     label: '운영',
     items: [
-      { label: '입주자 관리', to: '/operations/residents', page: ScreenPage },
-      { label: '입주·퇴거 달력', to: '/operations/calendar', page: ScreenPage },
-      { label: '쪽지함', to: '/operations/messages', page: ScreenPage },
-      { label: '신고 관리', to: '/operations/reports', page: ScreenPage },
-      { label: 'FAQ봇', to: '/operations/faq', page: ScreenPage },
+      { label: '입주자 관리', to: '/operations/residents', page: ResidentsPage },
+      { label: '입주·퇴거 달력', to: '/operations/calendar', page: CalendarPage },
+      { label: '쪽지함', to: '/operations/messages', page: NotesPage, badge: getAdminNoteBadgeCount },
+      { label: '신고 관리', to: '/operations/reports', page: ReportsPage, badge: getAdminReportBadgeCount },
+      { label: 'FAQ봇', to: '/operations/faq', page: FaqBotPage },
     ],
   },
   {

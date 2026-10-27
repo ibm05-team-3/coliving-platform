@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { NavLink, useLocation, useNavigate } from 'react-router'
 import LocaleSwitch from './LocaleSwitch'
 import { isResident } from '../resident'
+import { NotificationPanel } from '../features/community/components/NotificationPanel'
+import { useSupportWidget } from '../features/community/components/SupportWidgetContext'
 
 const RESIDENT_LINKS = [
   { to: '/community', label: 'community' },
@@ -105,6 +107,7 @@ function LanguageMenu() {
 
 function NotificationMenu() {
   const { t } = useTranslation('common')
+  const { notificationUnreadCount } = useSupportWidget()
   const location = useLocation()
   const [open, setOpen] = useState(false)
   const rootRef = useRef(null)
@@ -140,19 +143,19 @@ function NotificationMenu() {
         aria-expanded={open}
         aria-controls="notification-menu"
         onClick={() => setOpen((value) => !value)}
-        className={`${linkClass(open)} inline-flex items-center`}
+        className={`${linkClass(open)} relative inline-flex items-center`}
       >
         <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5 fill-current">
           <path d="M12 2.8a1.15 1.15 0 0 1 .9 1.45C16.2 5 18.2 7.6 18.2 10.6V13.2c0 .55.16 1.08.46 1.54l.72 1.08a1.15 1.15 0 0 1-.96 1.78H5.58a1.15 1.15 0 0 1-.96-1.78l.72-1.08c.3-.46.46-.99.46-1.54V10.6C5.8 7.6 7.8 5 11.1 4.25A1.15 1.15 0 0 1 12 2.8Zm-2.4 15.4a2.4 2.4 0 0 0 4.8 0Z" />
         </svg>
+        {notificationUnreadCount > 0 && <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-red-500" />}
       </button>
       {open && (
         <div
           id="notification-menu"
           className="absolute top-full right-0 z-20 mt-2 w-64 max-w-[calc(100vw-2rem)] rounded-lg border border-main/15 bg-white p-3"
         >
-          <p className="text-sm font-semibold text-main">{t('notifications')}</p>
-          <p className="mt-2 text-sm text-text/70">{t('notificationsEmpty')}</p>
+          <NotificationPanel onClose={() => setOpen(false)} />
         </div>
       )}
     </div>
