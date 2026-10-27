@@ -1,0 +1,2 @@
+import { Icon } from "."
+export function CommunityRestricted() { return <main className="px-4 py-6 sm:px-8 md:px-12"><section className="flex min-h-80 flex-col items-center justify-center rounded-lg border border-main/15 bg-white p-8 text-center"><span className="rounded-full bg-main/10 p-4 text-main"><Icon name="lock" size={30} /></span><h1 className="mt-5 text-2xl font-semibold text-main sm:text-3xl">커뮤니티는 입주자 전용 공간이에요</h1><p className="mt-3 text-sm text-text/70">입주 완료 후 같은 건물 이웃들의 게시판을 이용할 수 있어요.</p></section></main> }
