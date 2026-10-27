@@ -3,6 +3,7 @@ package com.coliving.platform.security.config;
 import com.coliving.platform.security.filter.LoginFilter;
 import com.coliving.platform.security.handler.LoginFailureHandler;
 import com.coliving.platform.security.handler.LoginSuccessHandler;
+import com.coliving.platform.security.http.SessionCookieFactory;
 import com.coliving.platform.security.service.AuthService;
 import com.coliving.platform.security.service.CustomOAuth2UserService;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ public class SecurityConfig {
 
     private final CustomOAuth2UserService customOAuth2UserService;
     private final AuthService authService;
+    private final SessionCookieFactory sessionCookieFactory;
 
     @Bean
     PasswordEncoder passwordEncoder() {
@@ -45,7 +47,7 @@ public class SecurityConfig {
 
         // 로그인 필터
         LoginFilter loginFilter = new LoginFilter(authenticationManager);
-        loginFilter.setAuthenticationSuccessHandler(new LoginSuccessHandler(authService));
+        loginFilter.setAuthenticationSuccessHandler(new LoginSuccessHandler(authService, sessionCookieFactory));
         loginFilter.setAuthenticationFailureHandler(new LoginFailureHandler());
 
         // http 설정

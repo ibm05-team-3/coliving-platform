@@ -1,5 +1,6 @@
 package com.coliving.platform.security.config;
 
+import com.coliving.platform.security.filter.SessionCookieBearerWebFilter;
 import com.coliving.platform.security.filter.UserIdHeaderWebFilter;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.Curve;
@@ -7,6 +8,8 @@ import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyUse;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
@@ -24,6 +27,7 @@ import org.springframework.security.web.server.SecurityWebFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
@@ -40,7 +44,17 @@ import java.util.List;
 public class GatewaySecurityConfig {
 
     @Bean
-    SecurityWebFilterChain gatewaySecurity(ServerHttpSecurity http) {
+    @LoadBalanced
+    WebClient.Builder sessionWebClientBuilder() {
+        return WebClient.builder().baseUrl("http://user-service");
+    }
+
+    @Bean
+    SecurityWebFilterChain gatewaySecurity(
+            ServerHttpSecurity http,
+            @Qualifier("sessionWebClientBuilder") WebClient.Builder sessionWebClientBuilder) {
+        SessionCookieBearerWebFilter sessionCookieBearerWebFilter =
+                new SessionCookieBearerWebFilter(sessionWebClientBuilder.build());
         return http
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -49,11 +63,10 @@ public class GatewaySecurityConfig {
                 .authorizeExchange(auth -> auth
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .pathMatchers(
-                                "/user-service/user/refresh",
                                 "/user-service/user/login",
+                                "/user-service/user/logout",
                                 "/user-service/user/create",
                                 "/user-service/user/exists/*",
-                                "/user-service/user/cookie/exchange",
                                 "/login/oauth2/**"
                         ).permitAll()
                         .pathMatchers("/*/admin/**").hasRole("ADMIN")
@@ -62,6 +75,7 @@ public class GatewaySecurityConfig {
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
                 )
+                .addFilterBefore(sessionCookieBearerWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .addFilterAfter(new UserIdHeaderWebFilter(), SecurityWebFiltersOrder.AUTHORIZATION)
                 .build();
     }

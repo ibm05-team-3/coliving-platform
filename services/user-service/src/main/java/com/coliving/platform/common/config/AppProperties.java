@@ -11,6 +11,10 @@ public record AppProperties(
             String url
     ) {}
 
+    /**
+     * refreshTokenName is the HttpOnly session cookie name.
+     * The cookie value is a session id. Access and refresh tokens stay on the server.
+     */
     public record Cookie(
             boolean secure,
             String sameSite,
