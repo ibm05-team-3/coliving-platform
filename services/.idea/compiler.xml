@@ -1,17 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="CompilerConfiguration">
-    <annotationProcessing>
-      <profile name="Gradle Imported" enabled="true">
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.48/6858f13541bab505384f07053c5a7b539bbfd3e3/lombok-1.18.48.jar" />
-        </processorPath>
-        <module name="property-service.main" />
-        <module name="property-service.test" />
-      </profile>
-    </annotationProcessing>
-  </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="api-gateway" options="-parameters" />
@@ -23,9 +11,6 @@
       <module name="eureka-server" options="-parameters" />
       <module name="eureka-server.main" options="-parameters" />
       <module name="eureka-server.test" options="-parameters" />
-      <module name="property-service" options="-parameters" />
-      <module name="property-service.main" options="-parameters" />
-      <module name="property-service.test" options="-parameters" />
       <module name="user-service" options="-parameters" />
       <module name="user-service.main" options="-parameters" />
       <module name="user-service.test" options="-parameters" />

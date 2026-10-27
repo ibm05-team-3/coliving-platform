@@ -28,14 +28,6 @@
         </option>
       </GradleProjectSettings>
       <GradleProjectSettings>
-        <option name="externalProjectPath" value="$PROJECT_DIR$/property-service" />
-        <option name="modules">
-          <set>
-            <option value="$PROJECT_DIR$/property-service" />
-          </set>
-        </option>
-      </GradleProjectSettings>
-      <GradleProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$/user-service" />
         <option name="modules">
           <set>
