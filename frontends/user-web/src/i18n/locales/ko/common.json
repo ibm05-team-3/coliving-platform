@@ -1,4 +1,19 @@
 {
   "localeKo": "한국어",
-  "localeEn": "English"
+  "localeEn": "English",
+  "serviceName": "룸링크",
+  "serviceNameEn": "Roomlink",
+  "serviceDescription": "공유 주거 플랫폼",
+  "copyright": "© {{year}} 룸링크",
+  "mainMenu": "메뉴",
+  "find": "코리빙 찾기",
+  "community": "커뮤니티",
+  "facilityReservation": "공용시설 예약",
+  "notifications": "알림",
+  "notificationsEmpty": "알림이 없습니다.",
+  "myProfile": "내 프로필",
+  "myApplication": "내 입주 신청서",
+  "myReservations": "내 예약 내역",
+  "accountSettings": "계정 설정",
+  "logout": "로그아웃"
 }
