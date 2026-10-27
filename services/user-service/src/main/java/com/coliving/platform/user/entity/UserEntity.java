@@ -21,12 +21,21 @@ public class UserEntity extends BaseTimeEntity {
     @Column(nullable = false, unique = true)
     private String email;
 
-    private String nickname;
-
     // 소셜만 있으면 null
     @ToString.Exclude
     @Column
     private String password;
+
+    @Column(nullable = false, length = 100)
+    private String name;
+
+    private String phone;
+
+    @Column(length = 511)
+    private String address;
+
+    @Column(length = 10)
+    private String contractLanguage;
 
     // 활성화 여부 (비활성화 / 회원탈퇴)
     @Column(nullable = false)

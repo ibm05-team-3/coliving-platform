@@ -22,7 +22,7 @@ public class InitialDataLoader implements CommandLineRunner {
     public void run(String... args) throws Exception {
         if (memberRepository.findByEmail("admin@naver.com").isPresent()) return;
         UserEntity member = UserEntity.builder()
-                .nickname("admin")
+                .name("admin")
                 .email("admin@naver.com")
                 .password(passwordEncoder.encode("12341234"))
                 .roles(Set.of(Role.ADMIN))

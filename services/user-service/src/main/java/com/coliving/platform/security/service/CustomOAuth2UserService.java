@@ -34,7 +34,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         Map<String, Object> attributes;
         String providerId;
         String email;
-        String nickname;
+        String name;
 
         String registrationId = userRequest.getClientRegistration().getRegistrationId().toUpperCase();
         if (SocialProviderType.NAVER.name().equals(registrationId)) {
@@ -42,18 +42,18 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             attributes = (Map<String, Object>) oAuth2User.getAttributes().get("response");
             providerId = attributes.get("id").toString();
             email = attributes.get("email").toString();
-            nickname = attributes.get("nickname").toString();
+            name = attributes.get("nickname").toString();
         } else if (SocialProviderType.GOOGLE.name().equals(registrationId)) {
             registration = SocialProviderType.GOOGLE;
             attributes = oAuth2User.getAttributes();
             providerId = attributes.get("sub").toString();
             email = attributes.get("email").toString();
-            nickname = attributes.get("name").toString();
+            name = attributes.get("name").toString();
         } else {
             throw new OAuth2AuthenticationException("지원하지 않은 소셜 로그인입니다.");
         }
 
-        UserEntity user = findOrCreateMember(email, nickname);
+        UserEntity user = findOrCreateMember(email, name);
         UserSocialAccountEntity socialAccount = UserSocialAccountEntity.builder()
                 .id(registrationId + "_" + providerId)
                 .user(user)
@@ -65,7 +65,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return new CustomOAuth2User(attributes, user);
     }
 
-    private UserEntity findOrCreateMember(String email, String nickname) {
+    private UserEntity findOrCreateMember(String email, String name) {
         Optional<UserEntity> optionalMember = userRepository.findByEmail(email);
         if (optionalMember.isPresent()) {
             // 기존 유저
@@ -76,7 +76,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
                     .builder()
                     .email(email)
                     .password(null)
-                    .nickname(nickname)
+                    .name(name)
                     .roles(Set.of(Role.USER))
                     .build();
             return userRepository.save(newMember);
