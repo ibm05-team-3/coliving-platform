@@ -1,4 +1,19 @@
 {
   "localeKo": "한국어",
-  "localeEn": "English"
+  "localeEn": "English",
+  "serviceName": "룸링크",
+  "serviceNameEn": "Roomlink",
+  "serviceDescription": "Shared housing platform",
+  "copyright": "© {{year}} 룸링크",
+  "mainMenu": "Menu",
+  "find": "Find",
+  "community": "Community",
+  "facilityReservation": "Facility booking",
+  "notifications": "Notifications",
+  "notificationsEmpty": "There are no notifications.",
+  "myProfile": "My profile",
+  "myApplication": "My move-in application",
+  "myReservations": "My reservations",
+  "accountSettings": "Account settings",
+  "logout": "Log out"
 }

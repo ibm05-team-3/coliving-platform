@@ -4,6 +4,8 @@ ibm 05기 3팀 Cloud Native 기반 공유 주거(Co-Living) 플랫폼 개발
 
 로컬 설치 순서는 [설치 가이드](docs/설치-가이드.md)를 따릅니다.
 
+프론트엔드 문서는 [admin-web](frontends/admin-web/README.md)과 [user-web](frontends/user-web/README.md)에 있습니다.
+
 ## 개발 환경
 
 | 구분 | 기술 스택 |

@@ -24,6 +24,7 @@ function TextField({ id, label, type, value, onChange, autoComplete }) {
 
 function LoginPage() {
   const { t, i18n } = useTranslation('login')
+  const { t: tCommon } = useTranslation('common')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [result, setResult] = useState('')
@@ -55,7 +56,8 @@ function LoginPage() {
   return (
     <main className="grid min-h-dvh bg-background text-text lg:grid-cols-2">
       <header className="bg-main px-4 py-8 text-background sm:px-8 sm:py-12 md:px-12 lg:flex lg:flex-col lg:justify-end lg:px-16 lg:py-20">
-        <p className="text-xs font-semibold tracking-[0.2em] text-accent sm:text-sm">COLIVING</p>
+        <p className="text-xs font-semibold text-accent sm:text-sm">{tCommon('serviceName')}</p>
+        <p className="mt-0.5 text-xs text-background/80">{tCommon('serviceNameEn')}</p>
         <h1 className="mt-3 text-2xl font-semibold sm:text-3xl md:text-4xl lg:text-5xl">{t('headline')}</h1>
         <p className="mt-2 max-w-md text-sm text-background/85 sm:text-base md:mt-4">{t('description')}</p>
       </header>
