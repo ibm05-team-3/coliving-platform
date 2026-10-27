@@ -1,4 +1,4 @@
-package com.coliving.platform.contract.dto;
+package com.coliving.platform.contract.dto.internal;
 
 /**
  * 신청서 제출 시 신청자 스냅샷.

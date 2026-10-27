@@ -1,4 +1,4 @@
-package com.coliving.platform.contract.dto;
+package com.coliving.platform.contract.dto.internal;
 
 /**
  * 호실 서비스(gRPC)에서 받은 값을 엔티티로 넘길 때 쓰는 묶음.
@@ -10,6 +10,6 @@ public record RoomSnapshot(
         String roomName,
         long monthlyFee,
         long deposit,
-        long discountAmount,
-        String discountNote
+        long discountAmount,     // ⚠ 10/27 할인 제외 → 사용처 정리 후 삭제
+        String discountNote      // ⚠ 10/27 할인 제외 → 사용처 정리 후 삭제
 ) {}

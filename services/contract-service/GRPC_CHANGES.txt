@@ -1,0 +1,23 @@
+[Feign → gRPC 전환] 이 zip을 services/ 폴더에 풀어서 덮어쓰기
+
+■ 직접 삭제할 파일 (zip으로는 지워지지 않음)
+  src/main/java/com/coliving/platform/contract/service/RoomFeign.java
+  src/main/java/com/coliving/platform/common/config/RoomFeignConfig.java
+
+■ 새 파일
+  src/main/proto/room.proto                         ← 매물 서비스(김정호)와 똑같이 공유해야 함
+  src/main/java/.../common/config/GrpcClientConfig.java
+  src/main/java/.../common/exception/RoomServiceUnavailableException.java
+
+■ 수정 파일
+  build.gradle                 openfeign 제거, grpc-client 스타터 + protobuf 플러그인 추가
+  application.yaml             openfeign 설정 → spring.grpc.client.channel.room
+  ContractApplication.java     @EnableFeignClients 제거
+  RoomQueryService.java        gRPC stub 호출 + 에러 변환 + DTO 변환
+  RoomContractInfoDTO.java     편의시설 List<String>, TEXT 컬럼용 문자열 메서드 추가
+  RoomNotFoundException / RoomServiceException / CustomControllerAdvice
+
+■ 적용 후
+  IntelliJ Gradle 새로고침 → ./gradlew build
+  (빌드 때 room.proto에서 RoomServiceGrpc, RoomContractInfo 등이 자동 생성됨.
+   생성 전에는 IntelliJ에서 import가 빨갛게 보이는 게 정상)

@@ -6,7 +6,7 @@ CREATE DATABASE user_service ENCODING 'UTF8';
 
 -- users 테이블
 DROP TABLE IF EXISTS user_roles CASCADE;
-DROP TABLE IF EXISTS user_social_accounts CASCADE;
+DROP TABLE IF EXISTS user_social_accounts CASCADE;file:/C:/DEV/coliving-platform/services/contract-service/src/main/resources/db/schma-dev-contract-service.sql
 DROP TABLE IF EXISTS users CASCADE;
 
 CREATE TABLE users (

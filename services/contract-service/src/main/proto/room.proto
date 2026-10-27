@@ -1,0 +1,55 @@
+// ============================================================
+// 매물 서비스 ↔ 계약 서비스 gRPC 계약서(인터페이스 정의)
+//
+// ⚠ 이 파일은 매물 서비스(김정호)와 계약 서비스가 "똑같은 내용"으로 가지고 있어야 한다.
+//   한쪽만 바꾸면 필드 번호가 어긋나서 값이 엉뚱하게 들어가거나 비어 온다.
+//   → 팀 공용 위치(공용 폴더/저장소)를 정해서 한 곳에서 관리할 것
+//
+// 규칙
+//   - 필드 번호(= 1, = 2 ...)는 한 번 정하면 절대 바꾸거나 재사용하지 않는다
+//   - 필드를 없앨 때는 지우지 말고 reserved로 막는다
+// ============================================================
+syntax = "proto3";
+
+package coliving.room.v1;
+
+option java_multiple_files = true;
+option java_package = "com.coliving.platform.grpc.room";
+option java_outer_classname = "RoomProto";
+
+service RoomService {
+  // 계약 화면·계약 저장에 필요한 호실 정보 1건 조회
+  // 없는 호실이면 서버는 Status NOT_FOUND로 응답한다
+  rpc GetRoomContractInfo (GetRoomContractInfoRequest) returns (RoomContractInfo);
+}
+
+message GetRoomContractInfoRequest {
+  int64 room_id = 1;
+}
+
+message RoomContractInfo {
+  // ── 식별 ──
+  int64 room_id = 1;
+  int64 building_id = 2;
+
+  // ── 화면 표시 ──
+  repeated string image_urls = 3;         // 호실 사진 (첫 번째 = 대표). ⚠ 매물 DB에 사진 테이블 확인 필요
+  string building_name = 4;               // buildings.building_name
+  string address = 5;                     // buildings.address
+  string region = 6;                      // buildings.region
+  string room_name = 7;                   // rooms.room_name
+  string room_type = 8;                   // rooms.room_type
+  repeated string room_facilities = 9;    // room_facilities.facility_name 목록 (id 순서)
+  repeated string building_facilities = 10; // building_facilities.facility_name 목록 (id 순서)
+  string area = 11;                       // rooms.area NUMERIC(10,2) → "13.50" 문자열 (proto에 소수 타입이 없어서 정밀도 보존용)
+  int32 floor_number = 12;                // rooms.floor_number
+  int64 monthly_fee = 13;                 // rooms.monthly_fee
+  int64 deposit = 14;                     // rooms.deposit
+
+  // ── 계약·결제 로직용 ──
+  int64 management_fee = 15;              // rooms.management_fee
+  string rental_type = 16;                // MONTHLY / SHORT_TERM / OTHER
+  int32 capacity = 17;                    // rooms.capacity
+  optional string room_structure = 18;    // rooms.room_structure (NULL 가능 → optional)
+  bool deleted = 19;                      // rooms.is_deleted
+}

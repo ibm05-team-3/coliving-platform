@@ -1,15 +1,15 @@
 package com.coliving.platform.contract.entity;
 
-import com.coliving.platform.contract.dto.ApplicantInfo;
-import com.coliving.platform.contract.dto.RoomSnapshot;
 import com.coliving.platform.contract.enums.ContractStatus;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -40,17 +40,42 @@ public class Contract {
     private String applicationNo;  //화면에 보여주는 신청번호
 
     @Column(name = "member_id", nullable = false)
-    private Long memberId;   //회원 서비스의 id
+    private Long memberId;   //회원의 id
 
     @Column(name = "room_id", nullable = false)
-    private Long roomId;      //호실 서비스의 id
+    private Long roomId;      //호실의 id
+
+    @Column(name = "building_id", nullable = false)
+    private Long buildingId;      //빌딩의 id
 
     // ---- 호실 스냅샷 ----
     @Column(name = "building_name", nullable = false, length = 100)
     private String buildingName;    //건물명
 
+    @Column(name = "region", nullable = false, length = 100)
+    private String region;   // 서울시 성동구]
+
+    @Column(name = "adrress", nullable = false, length = 500)
+    private String address;   //주소]
+
+
     @Column(name = "room_name", nullable = false, length = 100)
-    private String roomName;   //호실명
+    private String roomName;   //호실명]
+
+    @Column(name = "room_structure", nullable = false, length = 100)
+    private String roomStructure;   //호실구조]
+
+    @Column(name = "floor_number", nullable = false)
+    private int floorNumber;   //  층수]
+
+    @Column(name = "area", nullable = false, precision = 10, scale = 2)
+    private BigDecimal area;        //면적
+
+    @Column(name = "room_facilities", nullable = false, columnDefinition = "TEXT")
+    private String roomFacilities;
+
+    @Column(name = "building_facilities", nullable = false, columnDefinition = "TEXT")
+    private String buildingFacilities;
 
     // ---- 기간 ----
     @Column(name = "move_in_date", nullable = false)
@@ -74,14 +99,15 @@ public class Contract {
     @Column(name = "deposit", nullable = false)
     private Long deposit;       //보증금
 
-    @Column(name = "discount_amount", nullable = false)
-    private Long discountAmount = 0L;  //할인금액
+    @NotNull
+    @Column(name = "management_fee", nullable = false)
+    private Long managementFee;       //관리비
 
-    @Column(name = "discount_note", length = 200)
-    private String discountNote;    //할인사유
+
+
 
     @Column(name = "first_payment", nullable = false)
-    private Long firstPayment;                            // 첫 달 이용료 + 보증금 - 할인
+    private Long firstPayment;              // 첫 달 이용료 + 보증금 - 할인
 
     @Column(name = "amount_fixed_at")
     private Instant amountFixedAt;      //금액이 확정된 시간
@@ -215,11 +241,11 @@ public class Contract {
         if (contractMonths <= 0) throw new IllegalArgumentException("계약 기간은 1개월 이상이어야 합니다");
         //월이용료 0보다 큼
         if (room.monthlyFee() <= 0) throw new IllegalArgumentException("이용료 정보가 올바르지 않습니다");
-        //보증금 할인이 음수가 아님
-        if (room.deposit() < 0 || room.discountAmount() < 0) throw new IllegalArgumentException("금액 정보가 올바르지 않습니다");
+        //보증금이 음수가 아님
+        if (room.deposit() < 0 ) throw new IllegalArgumentException("금액 정보가 올바르지 않습니다");
         //첫결제 금액이 음수가 아님
-        long first = room.monthlyFee() + room.deposit() - room.discountAmount();
-        if (first < 0) throw new IllegalArgumentException("할인 금액이 결제 금액보다 큽니다");
+        long first = room.monthlyFee() + room.deposit();
+
         //호실정보 복사, 퇴실일 계산 , 금액복사, 첫결제 금액 계산
         this.roomId = room.roomId();
         this.buildingName = room.buildingName();
@@ -229,8 +255,6 @@ public class Contract {
         this.contractMonths = (short) contractMonths;
         this.monthlyFee = room.monthlyFee();
         this.deposit = room.deposit();
-        this.discountAmount = room.discountAmount();
-        this.discountNote = room.discountNote();
         this.firstPayment = first;
     }
     //현재 상태가 expected가 아니면 예외(상태변경 메서드들이 부르는것)

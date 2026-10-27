@@ -1,5 +1,5 @@
 server:
-  port: 8083        # 팀 포트 배정표 확인 필요 (8082는 user-service)
+  port: 8089        # 팀 포트 배정표 확인 필요 (8082는 user-service)
 
 spring:
   application:
@@ -8,3 +8,13 @@ spring:
     import: "optional:configserver:http://localhost:8888/"
   profiles:
     active: dev
+  grpc:
+    client:
+      channel:
+        room:                      # GrpcClientConfig의 @ImportGrpcClients(target = "room")과 같은 이름
+          # 매물 서비스 gRPC 서버 주소. ⚠ 포트(9090)는 김정호 님 gRPC 서버 포트 확인 필요
+          # 로컬: localhost:9090 / 쿠버네티스: dns:///매물서비스이름:9090 → 환경변수로 덮어쓰기
+          # (Feign과 달리 Eureka 서비스 이름으로는 주소를 찾지 않는다)
+          target: ${ROOM_GRPC_TARGET:localhost:9090}
+          default:
+            deadline: 3s           # 응답 제한 시간. 넘기면 DEADLINE_EXCEEDED → 503
