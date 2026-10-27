@@ -1,0 +1,82 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '4.1.2'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.coliving'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(21)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+ext {
+	set('springAiVersion', "2.0.1")
+	set('springCloudVersion', "2025.1.4")
+}
+
+dependencies {
+	// 팀 공통 (user-service와 동일)
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+	implementation 'org.springframework.cloud:spring-cloud-starter-bus-amqp'          // Cloud Bus = RabbitMQ (팀 방식)
+	implementation 'org.springframework.cloud:spring-cloud-starter-config'
+	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+
+	// community-service 추가
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'            // health, busrefresh
+	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'        // 채팅 메시지
+	implementation 'org.springframework.boot:spring-boot-starter-kafka'               // 계약·입주 상태·탈퇴 이벤트 수신
+	implementation 'org.springframework.boot:spring-boot-starter-websocket'           // 실시간 채팅·알림 (STOMP)
+
+	// FAQ 봇 (Spring AI + Gemini + pgvector)
+	implementation 'org.springframework.ai:spring-ai-starter-model-google-genai'            // 답변 생성 (Gemini)
+	implementation 'org.springframework.ai:spring-ai-starter-model-google-genai-embedding'  // 임베딩 (Gemini)
+	implementation 'org.springframework.ai:spring-ai-starter-vector-store-pgvector'         // faq_chunks 저장·검색
+	implementation 'org.springframework.ai:spring-ai-tika-document-reader'                  // PDF·DOCX 텍스트 추출
+	implementation 'org.springframework.ai:spring-ai-vector-store-advisor'                  // 검색 결과를 답변에 붙이는 Advisor
+
+	compileOnly 'org.projectlombok:lombok'
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	runtimeOnly 'org.postgresql:postgresql'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-actuator-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-data-mongodb-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-data-redis-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-jdbc-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-kafka-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-websocket-test'
+	testCompileOnly 'org.projectlombok:lombok'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	testAnnotationProcessor 'org.projectlombok:lombok'
+}
+
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
+		mavenBom "org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}"
+	}
+}
+
+// Docker 이미지에 넣을 jar 이름 고정
+tasks.named('bootJar') {
+	archiveFileName = 'community-service.jar'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
