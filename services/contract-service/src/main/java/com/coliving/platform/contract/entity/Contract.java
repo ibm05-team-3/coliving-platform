@@ -1,5 +1,7 @@
 package com.coliving.platform.contract.entity;
 
+import com.coliving.platform.contract.dto.internal.ApplicantInfo;
+import com.coliving.platform.contract.dto.internal.RoomSnapshot;
 import com.coliving.platform.contract.enums.ContractStatus;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -61,6 +63,9 @@ public class Contract {
 
     @Column(name = "room_name", nullable = false, length = 100)
     private String roomName;   //호실명]
+
+    @Column(name = "room_type", nullable = false)
+    private String roomType;   //1인실 ]
 
     @Column(name = "room_structure", nullable = false, length = 100)
     private String roomStructure;   //호실구조]
