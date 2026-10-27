@@ -1,5 +1,5 @@
-import { blockList, communityPostDetails, communityPosts, inactiveMySanction } from "../mocks"
-import type { BlockListResponse, CommunityCommentRequest, CommunityPostDetail, CommunityPostRequest, CreateBlockRequest, CreateBlockResponse, CreateReportRequest, CreateReportResponse, MySanction, PostCategory } from "../types"
+import { blockList, chatMessages, chatRooms, communityPostDetails, communityPosts, faqItems, inactiveMySanction, unreadNotificationSummary, userNotes, userNotifications } from "../mocks"
+import type { BlockListResponse, CommunityCommentRequest, CommunityPostDetail, CommunityPostRequest, CreateBlockRequest, CreateBlockResponse, CreateReportRequest, CreateReportResponse, GuestInquiryRequest, MySanction, PostCategory } from "../types"
 
 const copy = <T,>(value: T): T => structuredClone(value)
 const currentUserId = 5001
@@ -8,6 +8,8 @@ let blocks = copy(blockList.blocks)
 let nextPostId = 9
 let nextCommentId = 99
 let nextReportId = 81
+let nextNoteId = 78
+const unreadState = copy(unreadNotificationSummary)
 const reportedTargets = new Set<string>(["COMMENT:13"])
 
 export async function getCommunityPosts(params: { category?: PostCategory; keyword?: string; page?: number; size?: number } = {}) {
@@ -43,4 +45,17 @@ export async function getBlocks(): Promise<BlockListResponse> { return copy({ bl
 export async function createBlock(request: CreateBlockRequest): Promise<CreateBlockResponse> { if (request.blockedUserId === currentUserId) throw error("CANNOT_BLOCK_SELF", "본인은 차단할 수 없습니다."); if (blocks.some((item) => item.blockedUserId === request.blockedUserId)) throw error("ALREADY_BLOCKED", "이미 차단한 사용자입니다."); const users: Record<number, { name: string; room: string | null }> = { 5002: { name: "박준영", room: "201호" }, 5003: { name: "정하은", room: "304호" }, 5004: { name: "윤가영", room: null } }; const blockedAt = new Date().toISOString(); blocks.push({ blockedUserId: request.blockedUserId, name: users[request.blockedUserId]?.name ?? "알 수 없는 사용자", roomNumber: users[request.blockedUserId]?.room ?? null, profileImageUrl: null, blockedAt }); return { blockedUserId: request.blockedUserId, blockedAt } }
 export async function deleteBlock(blockedUserId: number): Promise<void> { if (!blocks.some((item) => item.blockedUserId === blockedUserId)) throw error("BLOCK_NOT_FOUND", "차단 내역을 찾을 수 없습니다."); blocks = blocks.filter((item) => item.blockedUserId !== blockedUserId) }
 export async function getMySanction(): Promise<MySanction> { return copy(inactiveMySanction) }
-export async function openChatRoom(request: { partnerUserId: number; sourceType: "POST" | "PROFILE"; sourceId: number }) { if (blocks.some((item) => item.blockedUserId === request.partnerUserId) || request.partnerUserId === 5002) throw error("CHAT_NOT_AVAILABLE", "지금은 이 사용자와 채팅할 수 없습니다."); return { roomId: `r_${request.partnerUserId}`, created: false } }
+export async function openChatRoom(request: { partnerUserId: number; sourceType: "POST" | "PROFILE"; sourceId: number }) { if (blocks.some((item) => item.blockedUserId === request.partnerUserId) || request.partnerUserId === 5002) throw error("CHAT_NOT_AVAILABLE", "지금은 이 사용자와 채팅할 수 없습니다."); const existing = chatRooms.find((room) => room.partner.userId === request.partnerUserId); return existing ? { roomId: existing.roomId, created: false } : { roomId: `r_${request.partnerUserId}`, created: true } }
+
+export async function getFaqItems() { return copy(faqItems) }
+export async function getUserNotes() { return copy(userNotes) }
+export async function createUserNote(request: { content: string }) { const createdAt = new Date().toISOString(); const noteId = nextNoteId++; userNotes.content.push({ noteId, senderType: "USER", senderName: "김민서", content: request.content, createdAt, readAt: null }); return { noteId, createdAt } }
+export async function readAllUserNotes(): Promise<void> { userNotes.content.forEach((note) => { if (note.senderType === "ADMIN" && !note.readAt) note.readAt = new Date().toISOString() }); userNotes.unreadCount = 0; unreadState.note = 0; unreadState.total = unreadState.chat; userNotifications.content.forEach((item) => { if (item.targetType === "NOTE") item.read = true }) }
+export async function createGuestInquiry(request: GuestInquiryRequest) { if (!request.privacyAgreed) throw new Error("개인정보 수집·이용 동의가 필요합니다."); return { inquiryId: 15, createdAt: new Date().toISOString() } }
+export async function getChatRooms() { return copy(chatRooms.filter((room) => !blocks.some((block) => block.blockedUserId === room.partner.userId))) }
+export async function getChatRoomMessages(roomId: string) { return copy(chatMessages[roomId] ?? { messages: [], hasMore: false }) }
+export async function readChatRoom(roomId: string): Promise<void> { const room = chatRooms.find((item) => item.roomId === roomId); if (!room) return; unreadState.chat = Math.max(0, unreadState.chat - room.unreadCount); room.unreadCount = 0; unreadState.total = unreadState.note + unreadState.chat; userNotifications.content.forEach((item) => { if (item.targetType === "CHAT_ROOM" && item.targetId === roomId) item.read = true }) }
+export async function getUserNotifications() { return copy(userNotifications) }
+export async function getUnreadNotificationSummary() { return copy(unreadState) }
+export async function readNotification(notificationId: number): Promise<void> { const item = userNotifications.content.find((notification) => notification.notificationId === notificationId); if (item) item.read = true }
+export async function readAllNotifications(): Promise<void> { userNotifications.content.forEach((item) => { item.read = true }); unreadState.note = 0; unreadState.chat = 0; unreadState.total = 0 }

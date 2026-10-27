@@ -1,4 +1,4 @@
-import type { BlockListResponse, CommunityPostDetail, CommunityPostListResponse, CommunityPostSummary, MySanction } from "../types"
+import type { BlockListResponse, ChatMessageListResponse, ChatRoom, CommunityPostDetail, CommunityPostListResponse, CommunityPostSummary, FaqItem, MySanction, NotificationListResponse, UnreadNotificationSummary, UserNoteListResponse } from "../types"
 
 const pinned: CommunityPostSummary = { postId: 100, category: "NOTICE", title: "10월 공용 라운지 정기 청소 안내", authorName: "망원 스테이 매니저", viewCount: 154, commentCount: 3, createdAt: "2025-10-18T09:00:00+09:00" }
 const summaries: CommunityPostSummary[] = [
@@ -23,3 +23,24 @@ communityPostDetails[1].comments = [
 ]
 export const blockList: BlockListResponse = { blocks: [{ blockedUserId: 5003, name: "정하은", roomNumber: "304호", profileImageUrl: null, blockedAt: "2026-10-20T20:00:00+09:00" }, { blockedUserId: 5004, name: "윤가영", roomNumber: null, profileImageUrl: null, blockedAt: "2026-10-22T18:30:00+09:00" }] }
 export const inactiveMySanction: MySanction = { active: false, sanctionId: null, sanctionType: null, durationDays: null, reason: null, startsAt: null, endsAt: null }
+
+export const faqItems: FaqItem[] = [
+  { id: 1, category: "비용", question: "보증금·월 이용료", answer: "보증금과 월 이용료는 지점 및 객실 유형에 따라 달라집니다. 상세 페이지에서 정확한 금액을 확인해 주세요.", branch: "전체 공통", enabled: true },
+  { id: 2, category: "입주", question: "입주 가능일", answer: "객실별 입주 가능일은 실시간으로 달라질 수 있으며, 계약 완료 후 확정됩니다.", branch: "전체 공통", enabled: true },
+  { id: 3, category: "계약", question: "최소 계약 기간", answer: "최소 계약 기간은 3개월이며 지점별 프로모션에 따라 달라질 수 있습니다.", branch: "전체 공통", enabled: true },
+  { id: 4, category: "시설", question: "공용 시설", answer: "라운지, 공용 주방, 세탁실 등 지점별로 다양한 공용 시설을 이용할 수 있습니다.", branch: "전체 공통", enabled: true },
+  { id: 5, category: "계약", question: "계약 절차", answer: "상담 신청, 객실 확인, 전자 계약서 작성, 보증금 납부 순서로 진행됩니다.", branch: "전체 공통", enabled: true },
+]
+export const userNotes: UserNoteListResponse = { unreadCount: 1, content: [{ noteId: 76, senderType: "USER", senderName: "김민서", content: "11월 초 입주 가능한 방이 있을까요?", createdAt: "2025-10-18T13:10:00+09:00", readAt: "2025-10-18T13:11:00+09:00" }, { noteId: 77, senderType: "ADMIN", senderName: "망원 스테이 매니저", content: "11월 3일 입주 가능합니다. 원하시면 계약 절차도 안내해 드릴게요.", createdAt: "2025-10-18T13:11:00+09:00", readAt: null }], page: 0, size: 30, totalElements: 2, totalPages: 1 }
+export const chatRooms: ChatRoom[] = [
+  { roomId: "r_501", partner: { userId: 5002, name: "박준영", profileImageUrl: null, roomNumber: "201호" }, lastMessage: "내일 라운지에서 봬요!", lastMessageAt: "2025-10-18T21:03:00+09:00", unreadCount: 2, readOnly: false },
+  { roomId: "r_502", partner: { userId: 5003, name: "정하은", profileImageUrl: null, roomNumber: "304호" }, lastMessage: "책 잘 읽을게요. 고마워요 :) ", lastMessageAt: "2025-10-17T19:42:00+09:00", unreadCount: 0, readOnly: false },
+  { roomId: "r_503", partner: { userId: 5004, name: "윤가영", profileImageUrl: null, roomNumber: "401호 · 퇴거" }, lastMessage: "그동안 즐거웠어요!", lastMessageAt: "2025-10-16T18:20:00+09:00", unreadCount: 1, readOnly: true },
+]
+export const chatMessages: Record<string, ChatMessageListResponse> = {
+  r_501: { messages: [{ messageId: "m_8999", senderId: 5001, content: "내일 저녁에 라운지 모임 오세요?", sentAt: "2025-10-18T20:58:00+09:00" }, { messageId: "m_9001", senderId: 5002, content: "네! 내일 라운지에서 봬요!", sentAt: "2025-10-18T21:03:00+09:00" }], hasMore: false },
+  r_502: { messages: [{ messageId: "m_9010", senderId: 5001, content: "책 문 앞에 두었어요.", sentAt: "2025-10-17T19:38:00+09:00" }, { messageId: "m_9011", senderId: 5003, content: "책 잘 읽을게요. 고마워요 :) ", sentAt: "2025-10-17T19:42:00+09:00" }], hasMore: false },
+  r_503: { messages: [{ messageId: "m_9020", senderId: 5004, content: "오늘 퇴거했어요. 그동안 즐거웠어요!", sentAt: "2025-10-16T18:20:00+09:00" }], hasMore: false },
+}
+export const userNotifications: NotificationListResponse = { content: [{ notificationId: 301, type: "NOTE", title: "새 쪽지", message: "망원 스테이 매니저가 쪽지를 보냈어요", targetType: "NOTE", targetId: "77", createdAt: "2025-10-18T13:11:00+09:00", read: false }, { notificationId: 302, type: "CHAT", title: "새 메시지", message: "박준영님: 내일 라운지에서 봬요!", targetType: "CHAT_ROOM", targetId: "r_501", createdAt: "2025-10-18T21:03:00+09:00", read: false }, { notificationId: 303, type: "COMMENT", title: "새 댓글", message: "한지호님이 회원님의 게시글에 댓글을 남겼어요", targetType: "POST", targetId: "1", createdAt: "2025-10-18T20:20:00+09:00", read: true }], page: 0, size: 20, totalElements: 3, totalPages: 1 }
+export const unreadNotificationSummary: UnreadNotificationSummary = { note: 1, chat: 3, total: 4 }
