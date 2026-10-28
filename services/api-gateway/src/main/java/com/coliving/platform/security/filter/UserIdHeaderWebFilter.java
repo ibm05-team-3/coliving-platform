@@ -14,7 +14,7 @@ import reactor.core.publisher.Mono;
 @NullMarked
 public class UserIdHeaderWebFilter implements WebFilter {
 
-    public static final String SUBJECT_HEADER = "X-User-Id";
+    public static final String SUBJECT_HEADER = "X-User";
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
