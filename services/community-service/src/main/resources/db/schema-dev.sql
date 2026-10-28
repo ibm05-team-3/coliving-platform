@@ -1,15 +1,13 @@
 -- =====================================================
 -- community-service 개발용 스키마 (schema-dev.sql)
 -- 대상: coliving-pgvector 컨테이너 (localhost:5433, postgres / admin)
--- 1) DBeaver에서 Data Source를 postgres로 두고 아래 한 줄만 먼저 실행
---CREATE DATABASE community_service ENCODING 'UTF8';
+-- 1) DBeaver에서 Data Source를 postgres로 두고 아래 두 줄만 먼저 실행
+CREATE DATABASE community_service ENCODING 'UTF8';
+ALTER DATABASE community_service SET timezone TO 'Asia/Seoul';   -- DEFAULT NOW() 도 한국 시간으로
 -- 2) Schema를 community_service로 전환한 뒤 "\c community_service;"를 제외한 아래쪽 전체 실행
---\c community_service;
+\c community_service;
 -- =====================================================
-SELECT table_schema, table_name 
-FROM information_schema.tables 
-WHERE table_schema NOT IN ('pg_catalog', 'information_schema')
-ORDER BY table_schema, table_name;
+
 -- =====================================================
 -- Community Service Schema (오시문)
 -- 쪽지 · 비회원 문의 · 1:1 채팅 · 커뮤니티 게시판 · 알림 · FAQ 봇(RAG, Gemini) · 신고 · 차단 · 제재
@@ -17,6 +15,8 @@ ORDER BY table_schema, table_name;
 -- =====================================================
 -- ※ user_id, building_id, admin_id 는 다른 서비스(유저·매물·계약)의 ID만 저장 (물리 FK 없음)
 -- ※ 게시글·댓글은 실제 삭제하지 않고 status 로 처리 (소프트 삭제)
+-- ※ 시간 컬럼은 팀 규칙대로 TIMESTAMP(한국 시간) · created_at/updated_at 은 엔티티 BaseTimeEntity 가 자동 기록
+-- ※ 제약조건 이름: fk_ / uq_ / chk_ 접두사
 -- ※ 채팅 메시지는 MongoDB, 조회수 중복·안 읽은 수·요청 제한은 Redis (파일 맨 아래 참고)
 
 -- =====================================================
@@ -52,8 +52,9 @@ CREATE TABLE guest_inquiries (
     phone_enc           VARCHAR(255) NOT NULL,                 -- AES 암호화
     email_enc           VARCHAR(255) NOT NULL,                 -- AES 암호화
     content             TEXT         NOT NULL,
-    privacy_agreed_at   TIMESTAMPTZ  NOT NULL,                 -- 동의 없으면 저장 불가
-    created_at          TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+    privacy_agreed_at   TIMESTAMP    NOT NULL,                 -- 동의 없으면 저장 불가
+    created_at          TIMESTAMP    NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMP    NOT NULL DEFAULT NOW()
 );
 COMMENT ON TABLE guest_inquiries IS '비회원 문의 (연락처는 회원 데이터와 분리 보관)';
 COMMENT ON COLUMN guest_inquiries.id IS '문의 ID';
@@ -73,13 +74,15 @@ CREATE TABLE note_threads (
     id                  BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     thread_type         note_thread_type   NOT NULL,
     user_id             BIGINT,                                -- 회원 ID (유저 서비스)
-    guest_inquiry_id    BIGINT UNIQUE REFERENCES guest_inquiries (id),
+    guest_inquiry_id    BIGINT,
     building_id         BIGINT,                                -- 관련 건물 (매물 서비스)
     status              note_thread_status NOT NULL DEFAULT 'UNANSWERED',
     memo                TEXT,
-    last_note_at        TIMESTAMPTZ,
-    created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    last_note_at        TIMESTAMP,
+    created_at          TIMESTAMP   NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMP   NOT NULL DEFAULT NOW(),
+    CONSTRAINT fk_note_threads_guest_inquiry FOREIGN KEY (guest_inquiry_id) REFERENCES guest_inquiries (id),
+    CONSTRAINT uq_note_threads_guest_inquiry UNIQUE (guest_inquiry_id),
     CONSTRAINT chk_note_threads_owner
         CHECK ((user_id IS NOT NULL) <> (guest_inquiry_id IS NOT NULL))   -- 회원 / 비회원 중 하나만
 );
@@ -101,12 +104,14 @@ CREATE INDEX idx_note_threads_list ON note_threads (thread_type, status, last_no
 -- =====================================================
 CREATE TABLE notes (
     id                  BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    note_thread_id      BIGINT      NOT NULL REFERENCES note_threads (id),
+    note_thread_id      BIGINT      NOT NULL,
     sender_type         sender_type NOT NULL,
     sender_id           BIGINT,                                -- 회원 또는 관리자 ID (비회원 문의 원문은 NULL)
     content             TEXT        NOT NULL,
-    read_at             TIMESTAMPTZ,
-    created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    read_at             TIMESTAMP,
+    created_at          TIMESTAMP   NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMP   NOT NULL DEFAULT NOW(),
+    CONSTRAINT fk_notes_note_thread FOREIGN KEY (note_thread_id) REFERENCES note_threads (id)
 );
 COMMENT ON TABLE notes IS '쪽지 (실시간 아님)';
 COMMENT ON COLUMN notes.id IS '쪽지 ID';
@@ -130,13 +135,15 @@ CREATE TABLE posts (
     category            post_category  NOT NULL,
     title               VARCHAR(100)   NOT NULL,
     content             TEXT           NOT NULL,
-    view_count          INT            NOT NULL DEFAULT 0 CHECK (view_count >= 0),      -- 반정규화
-    comment_count       INT            NOT NULL DEFAULT 0 CHECK (comment_count >= 0),   -- 반정규화
+    view_count          INT            NOT NULL DEFAULT 0,      -- 반정규화
+    comment_count       INT            NOT NULL DEFAULT 0,      -- 반정규화
     pinned              BOOLEAN        NOT NULL DEFAULT FALSE,
     status              content_status NOT NULL DEFAULT 'ACTIVE',
-    created_at          TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
-    updated_at          TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
-    deleted_at          TIMESTAMPTZ,
+    created_at          TIMESTAMP      NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMP      NOT NULL DEFAULT NOW(),
+    deleted_at          TIMESTAMP,
+    CONSTRAINT chk_posts_view_count CHECK (view_count >= 0),
+    CONSTRAINT chk_posts_comment_count CHECK (comment_count >= 0),
     CONSTRAINT chk_posts_notice_admin
         CHECK (category <> 'NOTICE' OR author_type = 'ADMIN')          -- 공지는 관리자만
 );
@@ -164,14 +171,16 @@ CREATE INDEX idx_posts_author ON posts (author_id);
 -- =====================================================
 CREATE TABLE comments (
     id                  BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    post_id             BIGINT         NOT NULL REFERENCES posts (id),
-    parent_comment_id   BIGINT         REFERENCES comments (id),
+    post_id             BIGINT         NOT NULL,
+    parent_comment_id   BIGINT,
     author_id           BIGINT         NOT NULL,
     content             TEXT           NOT NULL,
     status              content_status NOT NULL DEFAULT 'ACTIVE',
-    created_at          TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
-    updated_at          TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
-    deleted_at          TIMESTAMPTZ
+    created_at          TIMESTAMP      NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMP      NOT NULL DEFAULT NOW(),
+    deleted_at          TIMESTAMP,
+    CONSTRAINT fk_comments_post FOREIGN KEY (post_id) REFERENCES posts (id),
+    CONSTRAINT fk_comments_parent FOREIGN KEY (parent_comment_id) REFERENCES comments (id)
 );
 COMMENT ON TABLE comments IS '댓글 · 대댓글';
 COMMENT ON COLUMN comments.id IS '댓글 ID';
@@ -190,13 +199,16 @@ CREATE INDEX idx_comments_parent ON comments (parent_comment_id);
 CREATE TABLE chat_rooms (
     id                      BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     building_id             BIGINT           NOT NULL,
-    pair_key                VARCHAR(50)      NOT NULL UNIQUE,      -- '작은ID_큰ID' → 같은 상대와 방 중복 생성 방지
+    pair_key                VARCHAR(50)      NOT NULL,             -- '작은ID_큰ID' → 같은 상대와 방 중복 생성 방지
     source_type             chat_source_type NOT NULL,
-    source_post_id          BIGINT           REFERENCES posts (id),
+    source_post_id          BIGINT,
     read_only               BOOLEAN          NOT NULL DEFAULT FALSE,
     last_message_preview    VARCHAR(100),                          -- 반정규화
-    last_message_at         TIMESTAMPTZ,                           -- 반정규화
-    created_at              TIMESTAMPTZ      NOT NULL DEFAULT NOW()
+    last_message_at         TIMESTAMP,                           -- 반정규화
+    created_at              TIMESTAMP        NOT NULL DEFAULT NOW(),
+    updated_at              TIMESTAMP        NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_chat_rooms_pair_key UNIQUE (pair_key),
+    CONSTRAINT fk_chat_rooms_source_post FOREIGN KEY (source_post_id) REFERENCES posts (id)
 );
 COMMENT ON TABLE chat_rooms IS '입주자 1:1 채팅방';
 COMMENT ON COLUMN chat_rooms.id IS '채팅방 ID';
@@ -212,17 +224,19 @@ COMMENT ON COLUMN chat_rooms.last_message_at IS '마지막 메시지 일시';
 -- 7. 채팅 참여자 (Chat Room Member)
 -- =====================================================
 CREATE TABLE chat_room_members (
-    chat_room_id            BIGINT      NOT NULL REFERENCES chat_rooms (id),
+    chat_room_id            BIGINT      NOT NULL,
     user_id                 BIGINT      NOT NULL,
     last_read_message_id    VARCHAR(30),                           -- MongoDB 메시지 ID
-    joined_at               TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    PRIMARY KEY (chat_room_id, user_id)
+    created_at              TIMESTAMP   NOT NULL DEFAULT NOW(),       -- 참여 일시
+    updated_at              TIMESTAMP   NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (chat_room_id, user_id),
+    CONSTRAINT fk_chat_room_members_chat_room FOREIGN KEY (chat_room_id) REFERENCES chat_rooms (id)
 );
 COMMENT ON TABLE chat_room_members IS '채팅방 참여자';
 COMMENT ON COLUMN chat_room_members.chat_room_id IS '채팅방 ID';
 COMMENT ON COLUMN chat_room_members.user_id IS '참여자 ID';
 COMMENT ON COLUMN chat_room_members.last_read_message_id IS '마지막으로 읽은 메시지 ID';
-COMMENT ON COLUMN chat_room_members.joined_at IS '참여 일시';
+COMMENT ON COLUMN chat_room_members.created_at IS '참여 일시';
 
 CREATE INDEX idx_chat_room_members_user ON chat_room_members (user_id);
 
@@ -239,7 +253,8 @@ CREATE TABLE notifications (
     target_type         notification_target NOT NULL,
     target_id           VARCHAR(50)         NOT NULL,
     is_read             BOOLEAN             NOT NULL DEFAULT FALSE,
-    created_at          TIMESTAMPTZ         NOT NULL DEFAULT NOW()
+    created_at          TIMESTAMP           NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMP           NOT NULL DEFAULT NOW()
 );
 COMMENT ON TABLE notifications IS '알림 (30일 보관)';
 COMMENT ON COLUMN notifications.id IS '알림 ID';
@@ -269,8 +284,9 @@ CREATE TABLE faq_documents (
     index_status        faq_index_status NOT NULL DEFAULT 'PENDING',
     index_error         VARCHAR(500),                              -- 반영 실패 사유 (예: 텍스트 추출 불가 스캔 PDF)
     uploaded_by         BIGINT           NOT NULL,
-    uploaded_at         TIMESTAMPTZ      NOT NULL DEFAULT NOW(),
-    indexed_at          TIMESTAMPTZ,
+    indexed_at          TIMESTAMP,
+    created_at          TIMESTAMP        NOT NULL DEFAULT NOW(),     -- 업로드 일시
+    updated_at          TIMESTAMP        NOT NULL DEFAULT NOW(),
     CONSTRAINT chk_faq_documents_scope
         CHECK (scope = 'COMMON' OR building_id IS NOT NULL),           -- 건물 범위면 건물 ID 필수
     CONSTRAINT chk_faq_documents_file_size
@@ -324,8 +340,9 @@ CREATE TABLE faq_index_jobs (
     requested_by        BIGINT           NOT NULL,
     processed_count     INT              NOT NULL DEFAULT 0,
     error_message       TEXT,
-    started_at          TIMESTAMPTZ      NOT NULL DEFAULT NOW(),
-    finished_at         TIMESTAMPTZ
+    finished_at         TIMESTAMP,
+    created_at          TIMESTAMP        NOT NULL DEFAULT NOW(),     -- 시작 일시
+    updated_at          TIMESTAMP        NOT NULL DEFAULT NOW()
 );
 COMMENT ON TABLE faq_index_jobs IS 'FAQ 업데이트 반영 실행 기록';
 COMMENT ON COLUMN faq_index_jobs.id IS '작업 ID';
@@ -334,7 +351,7 @@ COMMENT ON COLUMN faq_index_jobs.requested_by IS '요청한 관리자 ID';
 COMMENT ON COLUMN faq_index_jobs.processed_count IS '처리한 문서 수';
 COMMENT ON COLUMN faq_index_jobs.error_message IS '실패 사유';
 
-CREATE INDEX idx_faq_index_jobs_started ON faq_index_jobs (started_at DESC);
+CREATE INDEX idx_faq_index_jobs_created ON faq_index_jobs (created_at DESC);
 
 -- =====================================================
 -- 11-1. FAQ 질문 기록 (FAQ Question Log) — 유사도 기준 조정 · 답 못 한 질문 확인
@@ -349,7 +366,8 @@ CREATE TABLE faq_question_logs (
     source_doc_ids      BIGINT[],                                  -- 근거 문서 ID 목록
     cached              BOOLEAN      NOT NULL DEFAULT FALSE,       -- Redis 캐시 응답 여부
     latency_ms          INT,
-    created_at          TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+    created_at          TIMESTAMP    NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMP    NOT NULL DEFAULT NOW()
 );
 COMMENT ON TABLE faq_question_logs IS 'FAQ 봇 질문 기록 (90일 보관)';
 COMMENT ON COLUMN faq_question_logs.question IS '질문 (개인정보 입력 금지 안내)';
@@ -369,9 +387,10 @@ CREATE TABLE user_blocks (
     id                  BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     blocker_id          BIGINT      NOT NULL,
     blocked_id          BIGINT      NOT NULL,
-    created_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE (blocker_id, blocked_id),
-    CHECK (blocker_id <> blocked_id)
+    created_at          TIMESTAMP   NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMP   NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_user_blocks_pair UNIQUE (blocker_id, blocked_id),
+    CONSTRAINT chk_user_blocks_not_self CHECK (blocker_id <> blocked_id)
 );
 COMMENT ON TABLE user_blocks IS '사용자 차단 (차단한 사람 화면에서 상대 글 숨김·댓글 접힘, 서로 채팅 불가, 관리자 공지는 영향 없음)';
 COMMENT ON COLUMN user_blocks.created_at IS '차단 일시';
@@ -399,11 +418,12 @@ CREATE TABLE reports (
     action              report_action,
     admin_memo          TEXT,                                      -- 처리 메모 (매니저 면담 기록 포함)
     handled_by          BIGINT,
-    handled_at          TIMESTAMPTZ,
-    created_at          TIMESTAMPTZ        NOT NULL DEFAULT NOW(),
-    UNIQUE (reporter_id, target_type, target_id),                     -- 같은 사람의 중복 신고 방지
-    CHECK (reporter_id <> target_user_id),
-    CHECK (status = 'RECEIVED' OR (action IS NOT NULL AND handled_by IS NOT NULL))
+    handled_at          TIMESTAMP,
+    created_at          TIMESTAMP          NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMP          NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_reports_reporter_target UNIQUE (reporter_id, target_type, target_id),   -- 같은 사람의 중복 신고 방지
+    CONSTRAINT chk_reports_not_self CHECK (reporter_id <> target_user_id),
+    CONSTRAINT chk_reports_handled CHECK (status = 'RECEIVED' OR (action IS NOT NULL AND handled_by IS NOT NULL))
 );
 COMMENT ON TABLE reports IS '신고 (신고자는 관리자에게만 공개)';
 COMMENT ON COLUMN reports.id IS '신고 ID';
@@ -438,14 +458,16 @@ CREATE TABLE user_sanctions (
     sanction_type       sanction_type NOT NULL,
     duration_days       SMALLINT,                                  -- 이용 제한 기간 (1/3/7/30일)
     reason              VARCHAR(500)  NOT NULL,                    -- 사용자에게 안내할 사유
-    report_id           BIGINT        REFERENCES reports (id),     -- 근거 신고 (관리자 직접 제재면 NULL)
-    starts_at           TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
-    ends_at             TIMESTAMPTZ,                               -- 이용 제한 종료 (경고·정지는 NULL)
+    report_id           BIGINT,                                    -- 근거 신고 (관리자 직접 제재면 NULL)
+    starts_at           TIMESTAMP     NOT NULL DEFAULT NOW(),
+    ends_at             TIMESTAMP,                               -- 이용 제한 종료 (경고·정지는 NULL)
     created_by          BIGINT        NOT NULL,
-    revoked_at          TIMESTAMPTZ,                               -- 해제 일시
+    revoked_at          TIMESTAMP,                               -- 해제 일시
     revoked_by          BIGINT,
     revoke_reason       VARCHAR(500),
-    created_at          TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+    created_at          TIMESTAMP     NOT NULL DEFAULT NOW(),
+    updated_at          TIMESTAMP     NOT NULL DEFAULT NOW(),
+    CONSTRAINT fk_user_sanctions_report FOREIGN KEY (report_id) REFERENCES reports (id),
     CONSTRAINT chk_user_sanctions_duration CHECK (
         (sanction_type = 'RESTRICTION' AND duration_days IN (1, 3, 7, 30) AND ends_at IS NOT NULL)
         OR (sanction_type <> 'RESTRICTION' AND duration_days IS NULL AND ends_at IS NULL)

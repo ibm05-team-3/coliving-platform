@@ -1,6 +1,7 @@
 package com.coliving.platform.note.service;
 
 import com.coliving.platform.client.ContractClient;
+import java.time.LocalDateTime;
 import com.coliving.platform.client.ContractClient.ResidentRoom;
 import com.coliving.platform.client.UserClient;
 import com.coliving.platform.client.UserClient.UserSummary;
@@ -9,7 +10,6 @@ import com.coliving.platform.common.dto.PageResponse;
 import com.coliving.platform.common.entity.SenderType;
 import com.coliving.platform.common.exception.CommunityException;
 import com.coliving.platform.common.exception.ErrorCode;
-import com.coliving.platform.common.time.KstTime;
 import com.coliving.platform.note.dto.AdminNoteCreateRequestDTO;
 import com.coliving.platform.note.dto.AdminNoteCreateResponseDTO;
 import com.coliving.platform.note.dto.AdminReplyResponseDTO;
@@ -82,7 +82,7 @@ public class AdminNoteService {
 							thread.getUserId(),
 							displayName(thread, users),
 							last != null ? last.getContent() : null,
-							KstTime.of(thread.getLastNoteAt()),
+							thread.getLastNoteAt(),
 							noteRepository.countByNoteThread_IdAndSenderTypeAndReadAtIsNull(thread.getId(), SenderType.USER),
 							thread.getStatus());
 				})
@@ -94,7 +94,7 @@ public class AdminNoteService {
 	@Transactional
 	public AdminThreadDetailDTO getThread(Long threadId) {
 		NoteThreadEntity thread = findThread(threadId);
-		noteRepository.markAllRead(threadId, SenderType.USER, KstTime.now());
+		noteRepository.markAllRead(threadId, SenderType.USER, LocalDateTime.now());
 
 		UserInfo user = null;
 		GuestInfo guest = null;
@@ -104,7 +104,7 @@ public class AdminNoteService {
 					inquiry.getName(),
 					cryptoService.decrypt(inquiry.getPhoneEnc()),
 					cryptoService.decrypt(inquiry.getEmailEnc()),
-					KstTime.of(inquiry.getPrivacyAgreedAt()));
+					inquiry.getPrivacyAgreedAt());
 		} else {
 			UserSummary summary = userClient.getUser(thread.getUserId());
 			ResidentRoom room = contractClient.getResidentRooms(List.of(thread.getUserId())).get(thread.getUserId());
@@ -117,7 +117,7 @@ public class AdminNoteService {
 
 		List<NoteInfo> notes = noteRepository.findByNoteThread_IdOrderByCreatedAtAsc(threadId).stream()
 				.map(note -> new NoteInfo(note.getId(), note.getSenderType(), note.getContent(),
-						KstTime.of(note.getCreatedAt()), KstTime.of(note.getReadAt())))
+						note.getCreatedAt(), note.getReadAt()))
 				.toList();
 		return new AdminThreadDetailDTO(thread.getId(), thread.getThreadType(), thread.getStatus(), thread.getMemo(),
 				user, guest, notes);
@@ -133,7 +133,7 @@ public class AdminNoteService {
 		NoteEntity note = noteRepository.save(NoteEntity.create(thread, SenderType.ADMIN, adminId, content));
 		thread.sentByAdmin(note.getCreatedAt());
 		notifyUser(thread);
-		return new AdminReplyResponseDTO(note.getId(), KstTime.of(note.getCreatedAt()), thread.getStatus());
+		return new AdminReplyResponseDTO(note.getId(), note.getCreatedAt(), thread.getStatus());
 	}
 
 	/** 3-4 처리 상태 · 메모 변경 (보낸 필드만) */
@@ -148,7 +148,7 @@ public class AdminNoteService {
 		}
 		noteThreadRepository.flush();
 		return new AdminThreadUpdateResponseDTO(thread.getId(), thread.getStatus(), thread.getMemo(),
-				KstTime.of(thread.getUpdatedAt()));
+				thread.getUpdatedAt());
 	}
 
 	/** 3-5 관리자가 먼저 쪽지 쓰기 (쪽지함 없으면 생성) */
@@ -168,7 +168,7 @@ public class AdminNoteService {
 		NoteEntity note = noteRepository.save(NoteEntity.create(thread, SenderType.ADMIN, adminId, request.content()));
 		thread.sentByAdmin(note.getCreatedAt());
 		notifyUser(thread);
-		return new AdminNoteCreateResponseDTO(thread.getId(), note.getId(), KstTime.of(note.getCreatedAt()));
+		return new AdminNoteCreateResponseDTO(thread.getId(), note.getId(), note.getCreatedAt());
 	}
 
 	private NoteThreadEntity findThread(Long threadId) {

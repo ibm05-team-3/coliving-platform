@@ -1,7 +1,7 @@
 package com.coliving.platform.note.entity;
 
 import com.coliving.platform.common.entity.SenderType;
-import com.coliving.platform.common.time.KstTime;
+import com.coliving.platform.common.entity.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -12,9 +12,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,7 +25,7 @@ import org.hibernate.type.SqlTypes;
 @Table(name = "notes")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class NoteEntity {
+public class NoteEntity extends BaseTimeEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -47,10 +46,7 @@ public class NoteEntity {
 	@Column(nullable = false, columnDefinition = "TEXT")
 	private String content;
 
-	private OffsetDateTime readAt;
-
-	@Column(nullable = false, updatable = false)
-	private OffsetDateTime createdAt;
+	private LocalDateTime readAt;
 
 	public static NoteEntity create(NoteThreadEntity thread, SenderType senderType, Long senderId, String content) {
 		NoteEntity note = new NoteEntity();
@@ -58,14 +54,6 @@ public class NoteEntity {
 		note.senderType = senderType;
 		note.senderId = senderId;
 		note.content = content;
-		note.createdAt = KstTime.now();
 		return note;
-	}
-
-	@PrePersist
-	void onCreate() {
-		if (createdAt == null) {
-			createdAt = KstTime.now();
-		}
 	}
 }

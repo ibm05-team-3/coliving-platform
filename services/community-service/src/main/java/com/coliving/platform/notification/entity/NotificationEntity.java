@@ -1,7 +1,7 @@
 package com.coliving.platform.notification.entity;
 
 import com.coliving.platform.common.entity.SenderType;
-import com.coliving.platform.common.time.KstTime;
+import com.coliving.platform.common.entity.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -9,9 +9,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import java.time.OffsetDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -22,7 +20,7 @@ import org.hibernate.type.SqlTypes;
 @Table(name = "notifications")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class NotificationEntity {
+public class NotificationEntity extends BaseTimeEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -58,9 +56,6 @@ public class NotificationEntity {
 	@Column(nullable = false)
 	private boolean isRead;
 
-	@Column(nullable = false, updatable = false)
-	private OffsetDateTime createdAt;
-
 	public static NotificationEntity create(Long receiverId, SenderType receiverType, NotificationType type,
 			String title, String message, NotificationTarget targetType, String targetId) {
 		NotificationEntity entity = new NotificationEntity();
@@ -76,13 +71,6 @@ public class NotificationEntity {
 
 	public void markRead() {
 		this.isRead = true;
-	}
-
-	@PrePersist
-	void onCreate() {
-		if (createdAt == null) {
-			createdAt = KstTime.now();
-		}
 	}
 
 	private static String cut(String value, int max) {

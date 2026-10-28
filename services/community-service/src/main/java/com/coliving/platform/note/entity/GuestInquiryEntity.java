@@ -1,14 +1,13 @@
 package com.coliving.platform.note.entity;
 
-import com.coliving.platform.common.time.KstTime;
+import com.coliving.platform.common.entity.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,7 +17,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "guest_inquiries")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class GuestInquiryEntity {
+public class GuestInquiryEntity extends BaseTimeEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,10 +36,7 @@ public class GuestInquiryEntity {
 	private String content;
 
 	@Column(nullable = false)
-	private OffsetDateTime privacyAgreedAt;
-
-	@Column(nullable = false, updatable = false)
-	private OffsetDateTime createdAt;
+	private LocalDateTime privacyAgreedAt;
 
 	public static GuestInquiryEntity create(String name, String phoneEnc, String emailEnc, String content) {
 		GuestInquiryEntity entity = new GuestInquiryEntity();
@@ -48,14 +44,7 @@ public class GuestInquiryEntity {
 		entity.phoneEnc = phoneEnc;
 		entity.emailEnc = emailEnc;
 		entity.content = content;
-		entity.privacyAgreedAt = KstTime.now();
+		entity.privacyAgreedAt = LocalDateTime.now();
 		return entity;
-	}
-
-	@PrePersist
-	void onCreate() {
-		if (createdAt == null) {
-			createdAt = KstTime.now();
-		}
 	}
 }

@@ -1,7 +1,7 @@
 package com.coliving.platform.note.dto;
 
 import com.coliving.platform.common.entity.SenderType;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 
 /** 1-1 쪽지 항목 */
 public record NoteItemDTO(
@@ -9,7 +9,7 @@ public record NoteItemDTO(
 		SenderType senderType,
 		String senderName,
 		String content,
-		OffsetDateTime createdAt,
-		OffsetDateTime readAt
+		LocalDateTime createdAt,
+		LocalDateTime readAt
 ) {
 }

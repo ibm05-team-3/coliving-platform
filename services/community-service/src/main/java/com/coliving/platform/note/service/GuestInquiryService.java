@@ -4,7 +4,6 @@ import com.coliving.platform.common.crypto.CryptoService;
 import com.coliving.platform.common.entity.SenderType;
 import com.coliving.platform.common.exception.CommunityException;
 import com.coliving.platform.common.exception.ErrorCode;
-import com.coliving.platform.common.time.KstTime;
 import com.coliving.platform.note.dto.GuestInquiryRequestDTO;
 import com.coliving.platform.note.dto.GuestInquiryResponseDTO;
 import com.coliving.platform.note.entity.GuestInquiryEntity;
@@ -56,7 +55,7 @@ public class GuestInquiryService {
 
 		notificationService.notifyAdmins(NotificationType.NOTE, "새 비회원 문의",
 				inquiry.getName() + "님이 문의를 남겼어요", NotificationTarget.NOTE_THREAD, thread.getId());
-		return new GuestInquiryResponseDTO(inquiry.getId(), KstTime.of(inquiry.getCreatedAt()));
+		return new GuestInquiryResponseDTO(inquiry.getId(), inquiry.getCreatedAt());
 	}
 
 	/** 같은 연락처 10분 내 재제출 방지 (Redis ratelimit:guest:{전화번호 해시}) */

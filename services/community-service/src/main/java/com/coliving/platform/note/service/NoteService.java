@@ -1,6 +1,7 @@
 package com.coliving.platform.note.service;
 
 import com.coliving.platform.client.ContractClient;
+import java.time.LocalDateTime;
 import com.coliving.platform.client.ContractClient.ResidentRoom;
 import com.coliving.platform.client.PropertyClient;
 import com.coliving.platform.client.UserClient;
@@ -8,7 +9,6 @@ import com.coliving.platform.client.UserClient.UserSummary;
 import com.coliving.platform.common.entity.SenderType;
 import com.coliving.platform.common.exception.CommunityException;
 import com.coliving.platform.common.exception.ErrorCode;
-import com.coliving.platform.common.time.KstTime;
 import com.coliving.platform.note.dto.NoteCreateResponseDTO;
 import com.coliving.platform.note.dto.NoteItemDTO;
 import com.coliving.platform.note.dto.NoteListResponseDTO;
@@ -62,8 +62,8 @@ public class NoteService {
 						note.getSenderType(),
 						note.getSenderType() == SenderType.ADMIN ? managerName : myName,
 						note.getContent(),
-						KstTime.of(note.getCreatedAt()),
-						KstTime.of(note.getReadAt())))
+						note.getCreatedAt(),
+						note.getReadAt()))
 				.toList();
 		long unread = noteRepository.countByNoteThread_IdAndSenderTypeAndReadAtIsNull(thread.getId(), SenderType.ADMIN);
 		return new NoteListResponseDTO(unread, content, notes.getNumber(), notes.getSize(),
@@ -85,14 +85,14 @@ public class NoteService {
 
 		notificationService.notifyAdmins(NotificationType.NOTE, "새 쪽지",
 				me.name() + "님이 쪽지를 보냈어요", NotificationTarget.NOTE_THREAD, thread.getId());
-		return new NoteCreateResponseDTO(note.getId(), KstTime.of(note.getCreatedAt()));
+		return new NoteCreateResponseDTO(note.getId(), note.getCreatedAt());
 	}
 
 	/** 1-3 받은 쪽지 전체 읽음 */
 	@Transactional
 	public void readAll(Long userId) {
 		noteThreadRepository.findByUserId(userId)
-				.ifPresent(thread -> noteRepository.markAllRead(thread.getId(), SenderType.ADMIN, KstTime.now()));
+				.ifPresent(thread -> noteRepository.markAllRead(thread.getId(), SenderType.ADMIN, LocalDateTime.now()));
 	}
 
 	private NoteThreadEntity createThread(UserSummary user) {

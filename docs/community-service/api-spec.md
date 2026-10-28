@@ -1,7 +1,7 @@
 # community-service API 명세서
 
 > 담당: 오시문 · 서비스: community-service (쪽지 · 비회원 문의 · 1:1 채팅 · 커뮤니티 게시판 · 알림 · FAQ 봇 · 신고·차단·제재)
-> 기준: DB 초안 `community-service_schema.sql` · 상태: 최종본 v1.0 (신고·차단·제재, Gemini RAG 반영)
+> 기준: DB `community-service_schema.sql` · 상태: 최종본 v1.0 (신고·차단·제재, Gemini RAG 반영)
 > ※ 입주자 관리 · 입주-퇴거 달력 API는 조휘재 팀장님 담당 (화면만 오시문)
 
 ---
@@ -18,7 +18,7 @@
 | 인증 | `Authorization: Bearer {JWT}` → Gateway 검증 후 `X-User: {user_id}` 헤더로 전달 |
 | 권한 표기 | 비회원 / 회원(후보자 포함) / 입주자(거주 중) / 관리자 |
 | Content-Type | `application/json; charset=UTF-8` (파일 업로드만 `multipart/form-data`) |
-| 날짜 형식 | 날짜 `YYYY-MM-DD` · 일시 ISO 8601 `2025-10-18T13:11:00+09:00` |
+| 날짜 형식 | 날짜 `YYYY-MM-DD` · 일시 `YYYY-MM-DDTHH:mm:ss` (예: `2025-10-18T13:11:00`) — 한국 시간, 시차 표기 없음 (팀 규칙: DB `TIMESTAMP` + Java `LocalDateTime`) |
 | 건물 범위 | 게시글·채팅은 요청자의 **입주 건물** 기준 (서버가 X-User로 계약 서비스 조회, 요청에 건물 ID 받지 않음) |
 
 ### 0-2. 페이지 요청 · 응답
@@ -174,7 +174,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
   "instance": "/community-service/posts",
   "code": "SANCTIONED",
   "sanctionType": "RESTRICTION",
-  "endsAt": "2026-11-03T10:00:00+09:00"
+  "endsAt": "2026-11-03T10:00:00"
 }
 ```
 
@@ -202,8 +202,8 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 {
   "unreadCount": 1,
   "content": [
-    { "noteId": 77, "senderType": "ADMIN", "senderName": "망원 스테이 매니저", "content": "11월 3일 입주 가능합니다.", "createdAt": "2025-10-18T13:11:00+09:00", "readAt": null },
-    { "noteId": 76, "senderType": "USER", "senderName": "김예린", "content": "11월 초 입주 가능한 방이 있을까요?", "createdAt": "2025-10-18T13:10:00+09:00", "readAt": "2025-10-18T13:11:00+09:00" }
+    { "noteId": 77, "senderType": "ADMIN", "senderName": "망원 스테이 매니저", "content": "11월 3일 입주 가능합니다.", "createdAt": "2025-10-18T13:11:00", "readAt": null },
+    { "noteId": 76, "senderType": "USER", "senderName": "김예린", "content": "11월 초 입주 가능한 방이 있을까요?", "createdAt": "2025-10-18T13:10:00", "readAt": "2025-10-18T13:11:00" }
   ],
   "page": 0, "size": 30, "totalElements": 2, "totalPages": 1
 }
@@ -238,7 +238,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 
 **Response 201**
 ```json
-{ "noteId": 78, "createdAt": "2025-10-18T13:20:00+09:00" }
+{ "noteId": 78, "createdAt": "2025-10-18T13:20:00" }
 ```
 
 | 필드 | 타입 | 설명 |
@@ -284,7 +284,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 
 **Response 201**
 ```json
-{ "inquiryId": 15, "createdAt": "2025-10-18T14:00:00+09:00" }
+{ "inquiryId": 15, "createdAt": "2025-10-18T14:00:00" }
 ```
 
 | 필드 | 타입 | 설명 |
@@ -316,8 +316,8 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 ```json
 {
   "content": [
-    { "threadId": 12, "type": "CANDIDATE", "userId": 6001, "name": "김예린", "lastContent": "토요일 오후 2시 가능합니다!", "lastAt": "2025-10-18T10:24:00+09:00", "unreadCount": 2, "status": "UNANSWERED" },
-    { "threadId": 15, "type": "GUEST", "userId": null, "name": "홍길동", "lastContent": "반려동물 동반 입주 가능한가요?", "lastAt": "2025-10-18T14:00:00+09:00", "unreadCount": 1, "status": "UNANSWERED" }
+    { "threadId": 12, "type": "CANDIDATE", "userId": 6001, "name": "김예린", "lastContent": "토요일 오후 2시 가능합니다!", "lastAt": "2025-10-18T10:24:00", "unreadCount": 2, "status": "UNANSWERED" },
+    { "threadId": 15, "type": "GUEST", "userId": null, "name": "홍길동", "lastContent": "반려동물 동반 입주 가능한가요?", "lastAt": "2025-10-18T14:00:00", "unreadCount": 1, "status": "UNANSWERED" }
   ],
   "page": 0, "size": 20, "totalElements": 2, "totalPages": 1
 }
@@ -349,9 +349,9 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 {
   "threadId": 15, "type": "GUEST", "status": "UNANSWERED", "memo": null,
   "user": null,
-  "guest": { "name": "홍길동", "phone": "010-1234-5678", "email": "gildong@email.com", "privacyAgreedAt": "2025-10-18T14:00:00+09:00" },
+  "guest": { "name": "홍길동", "phone": "010-1234-5678", "email": "gildong@email.com", "privacyAgreedAt": "2025-10-18T14:00:00" },
   "notes": [
-    { "noteId": 90, "senderType": "USER", "content": "반려동물 동반 입주 가능한가요?", "createdAt": "2025-10-18T14:00:00+09:00", "readAt": "2025-10-18T14:05:00+09:00" }
+    { "noteId": 90, "senderType": "USER", "content": "반려동물 동반 입주 가능한가요?", "createdAt": "2025-10-18T14:00:00", "readAt": "2025-10-18T14:05:00" }
   ]
 }
 ```
@@ -392,7 +392,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 
 **Response 201**
 ```json
-{ "noteId": 79, "createdAt": "2025-10-18T14:10:00+09:00", "threadStatus": "ANSWERED" }
+{ "noteId": 79, "createdAt": "2025-10-18T14:10:00", "threadStatus": "ANSWERED" }
 ```
 
 | 필드 | 타입 | 설명 |
@@ -420,7 +420,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 
 **Response 200**
 ```json
-{ "threadId": 15, "status": "ANSWERED", "memo": "10/18 전화 안내 완료", "updatedAt": "2025-10-18T15:00:00+09:00" }
+{ "threadId": 15, "status": "ANSWERED", "memo": "10/18 전화 안내 완료", "updatedAt": "2025-10-18T15:00:00" }
 ```
 
 | 필드 | 타입 | 설명 |
@@ -450,7 +450,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 
 **Response 201**
 ```json
-{ "threadId": 21, "noteId": 95, "createdAt": "2025-10-18T16:00:00+09:00" }
+{ "threadId": 21, "noteId": 95, "createdAt": "2025-10-18T16:00:00" }
 ```
 
 | 필드 | 타입 | 설명 |
@@ -475,7 +475,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 **Response 200**
 ```json
 [
-  { "roomId": 501, "partner": { "userId": 5002, "name": "박준영", "profileImageUrl": null, "roomNumber": "201호" }, "lastMessage": "내일 라운지에서 봬요!", "lastMessageAt": "2025-10-18T21:03:00+09:00", "unreadCount": 2, "readOnly": false }
+  { "roomId": 501, "partner": { "userId": 5002, "name": "박준영", "profileImageUrl": null, "roomNumber": "201호" }, "lastMessage": "내일 라운지에서 봬요!", "lastMessageAt": "2025-10-18T21:03:00", "unreadCount": 2, "readOnly": false }
 ]
 ```
 
@@ -538,7 +538,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 ```json
 {
   "messages": [
-    { "messageId": "6712f0a1c3e5b2a1f0000001", "senderId": 5002, "content": "내일 라운지에서 봬요!", "status": "ACTIVE", "sentAt": "2025-10-18T21:03:00+09:00" }
+    { "messageId": "6712f0a1c3e5b2a1f0000001", "senderId": 5002, "content": "내일 라운지에서 봬요!", "status": "ACTIVE", "sentAt": "2025-10-18T21:03:00" }
   ],
   "hasMore": true
 }
@@ -607,10 +607,10 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
   "buildingId": 1,
   "buildingName": "망원 스테이",
   "pinned": [
-    { "postId": 100, "category": "NOTICE", "title": "10월 공용 라운지 정기 청소 안내", "authorName": "망원 스테이 매니저", "viewCount": 54, "commentCount": 3, "createdAt": "2025-10-18T09:00:00+09:00" }
+    { "postId": 100, "category": "NOTICE", "title": "10월 공용 라운지 정기 청소 안내", "authorName": "망원 스테이 매니저", "viewCount": 54, "commentCount": 3, "createdAt": "2025-10-18T09:00:00" }
   ],
   "content": [
-    { "postId": 1, "category": "FREE", "title": "이번 주말 한강 피크닉 같이 가실 분?", "authorId": 5001, "authorName": "김민서", "authorRoomNumber": "302호", "viewCount": 31, "commentCount": 7, "createdAt": "2025-10-18T10:00:00+09:00", "isNew": true }
+    { "postId": 1, "category": "FREE", "title": "이번 주말 한강 피크닉 같이 가실 분?", "authorId": 5001, "authorName": "김민서", "authorRoomNumber": "302호", "viewCount": 31, "commentCount": 7, "createdAt": "2025-10-18T10:00:00", "isNew": true }
   ],
   "page": 0, "size": 20, "totalElements": 42, "totalPages": 3
 }
@@ -647,17 +647,17 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
   "postId": 1, "category": "FREE", "title": "이번 주말 한강 피크닉 같이 가실 분?",
   "content": "토요일 오후 3시에 망원 한강공원에서...",
   "authorId": 5001, "authorName": "김민서", "authorRoomNumber": "302호",
-  "viewCount": 32, "createdAt": "2025-10-18T10:00:00+09:00", "updatedAt": null,
+  "viewCount": 32, "createdAt": "2025-10-18T10:00:00", "updatedAt": null,
   "isMine": true,
   "comments": [
     {
       "commentId": 11, "authorId": 5002, "authorName": "박준영", "authorRoomNumber": "201호",
-      "content": "저 갈래요!", "status": "ACTIVE", "blocked": false, "isMine": false, "createdAt": "2025-10-18T10:30:00+09:00",
+      "content": "저 갈래요!", "status": "ACTIVE", "blocked": false, "isMine": false, "createdAt": "2025-10-18T10:30:00",
       "replies": [
-        { "commentId": 12, "authorId": 5001, "authorName": "김민서", "authorRoomNumber": "302호", "content": "좋아요 :)", "status": "ACTIVE", "blocked": false, "isMine": true, "createdAt": "2025-10-18T10:40:00+09:00" }
+        { "commentId": 12, "authorId": 5001, "authorName": "김민서", "authorRoomNumber": "302호", "content": "좋아요 :)", "status": "ACTIVE", "blocked": false, "isMine": true, "createdAt": "2025-10-18T10:40:00" }
       ]
     },
-    { "commentId": 16, "authorId": null, "authorName": null, "authorRoomNumber": null, "content": null, "status": "DELETED", "blocked": false, "isMine": false, "createdAt": "2025-10-18T11:20:00+09:00", "replies": [] }
+    { "commentId": 16, "authorId": null, "authorName": null, "authorRoomNumber": null, "content": null, "status": "DELETED", "blocked": false, "isMine": false, "createdAt": "2025-10-18T11:20:00", "replies": [] }
   ]
 }
 ```
@@ -702,7 +702,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 
 **Response 201**
 ```json
-{ "postId": 43, "createdAt": "2025-10-19T09:00:00+09:00" }
+{ "postId": 43, "createdAt": "2025-10-19T09:00:00" }
 ```
 
 | 필드 | 타입 | 설명 |
@@ -721,7 +721,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 
 **Response 200**
 ```json
-{ "postId": 43, "updatedAt": "2025-10-19T09:30:00+09:00" }
+{ "postId": 43, "updatedAt": "2025-10-19T09:30:00" }
 ```
 
 | 필드 | 타입 | 설명 |
@@ -760,7 +760,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 
 **Response 201**
 ```json
-{ "commentId": 18, "parentCommentId": 11, "createdAt": "2025-10-18T12:00:00+09:00" }
+{ "commentId": 18, "parentCommentId": 11, "createdAt": "2025-10-18T12:00:00" }
 ```
 
 | 필드 | 타입 | 설명 |
@@ -787,7 +787,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 
 **Response 200**
 ```json
-{ "commentId": 18, "updatedAt": "2025-10-18T12:10:00+09:00" }
+{ "commentId": 18, "updatedAt": "2025-10-18T12:10:00" }
 ```
 
 | 필드 | 타입 | 설명 |
@@ -858,8 +858,8 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 ```json
 {
   "content": [
-    { "notificationId": 301, "type": "NOTE", "title": "새 쪽지", "message": "망원 스테이 매니저가 쪽지를 보냈어요", "targetType": "NOTE_THREAD", "targetId": "12", "read": false, "createdAt": "2025-10-18T13:11:00+09:00" },
-    { "notificationId": 302, "type": "CHAT", "title": "새 메시지", "message": "박준영님: 내일 라운지에서 봬요!", "targetType": "CHAT_ROOM", "targetId": "501", "read": false, "createdAt": "2025-10-18T21:03:00+09:00" }
+    { "notificationId": 301, "type": "NOTE", "title": "새 쪽지", "message": "망원 스테이 매니저가 쪽지를 보냈어요", "targetType": "NOTE_THREAD", "targetId": "12", "read": false, "createdAt": "2025-10-18T13:11:00" },
+    { "notificationId": 302, "type": "CHAT", "title": "새 메시지", "message": "박준영님: 내일 라운지에서 봬요!", "targetType": "CHAT_ROOM", "targetId": "501", "read": false, "createdAt": "2025-10-18T21:03:00" }
   ],
   "page": 0, "size": 20, "totalElements": 2, "totalPages": 1
 }
@@ -984,9 +984,9 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 **Response 200**
 ```json
 {
-  "summary": { "lastIndexedAt": "2026-10-24T18:30:00+09:00", "indexedCount": 4, "pendingCount": 1 },
+  "summary": { "lastIndexedAt": "2026-10-24T18:30:00", "indexedCount": 4, "pendingCount": 1 },
   "documents": [
-    { "documentId": 3, "title": "망원 스테이 이용 규정", "scope": "BUILDING", "buildingId": 1, "buildingName": "망원 스테이", "fileName": "mangwon-guide.pdf", "fileType": "PDF", "fileSize": 245760, "uploadedAt": "2026-10-22T10:00:00+09:00", "indexStatus": "COMPLETED", "indexedAt": "2026-10-24T18:30:00+09:00", "indexError": null }
+    { "documentId": 3, "title": "망원 스테이 이용 규정", "scope": "BUILDING", "buildingId": 1, "buildingName": "망원 스테이", "fileName": "mangwon-guide.pdf", "fileType": "PDF", "fileSize": 245760, "uploadedAt": "2026-10-22T10:00:00", "indexStatus": "COMPLETED", "indexedAt": "2026-10-24T18:30:00", "indexError": null }
   ]
 }
 ```
@@ -1026,7 +1026,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 
 **Response 201**
 ```json
-{ "documentId": 6, "indexStatus": "PENDING", "uploadedAt": "2026-10-26T10:00:00+09:00" }
+{ "documentId": 6, "indexStatus": "PENDING", "uploadedAt": "2026-10-26T10:00:00" }
 ```
 
 | 필드 | 타입 | 설명 |
@@ -1075,7 +1075,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 
 **Response 202**
 ```json
-{ "jobId": 10, "status": "PROCESSING", "startedAt": "2026-10-26T10:05:00+09:00" }
+{ "jobId": 10, "status": "PROCESSING", "startedAt": "2026-10-26T10:05:00" }
 ```
 
 | 필드 | 타입 | 설명 |
@@ -1096,7 +1096,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 
 **Response 200**
 ```json
-{ "jobId": 10, "status": "COMPLETED", "processedCount": 1, "totalCount": 1, "errorMessage": null, "startedAt": "2026-10-26T10:05:00+09:00", "finishedAt": "2026-10-26T10:05:12+09:00" }
+{ "jobId": 10, "status": "COMPLETED", "processedCount": 1, "totalCount": 1, "errorMessage": null, "startedAt": "2026-10-26T10:05:00", "finishedAt": "2026-10-26T10:05:12" }
 ```
 
 | 필드 | 타입 | 설명 |
@@ -1129,7 +1129,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 {
   "summary": { "totalCount": 128, "unansweredCount": 9, "cachedCount": 41, "avgLatencyMs": 1240 },
   "content": [
-    { "logId": 901, "question": "택배는 어디서 받나요?", "buildingId": 1, "buildingName": "망원 스테이", "answered": false, "topScore": 0.42, "sources": [], "cached": false, "latencyMs": 380, "createdAt": "2026-10-26T14:02:00+09:00" }
+    { "logId": 901, "question": "택배는 어디서 받나요?", "buildingId": 1, "buildingName": "망원 스테이", "answered": false, "topScore": 0.42, "sources": [], "cached": false, "latencyMs": 380, "createdAt": "2026-10-26T14:02:00" }
   ],
   "page": 0, "size": 20, "totalElements": 9, "totalPages": 1
 }
@@ -1184,7 +1184,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 
 **Response 201**
 ```json
-{ "reportId": 77, "status": "RECEIVED", "createdAt": "2026-10-26T15:00:00+09:00" }
+{ "reportId": 77, "status": "RECEIVED", "createdAt": "2026-10-26T15:00:00" }
 ```
 
 | 필드 | 타입 | 설명 |
@@ -1209,7 +1209,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 ```json
 {
   "blocks": [
-    { "blockedUserId": 5003, "name": "이도윤", "roomNumber": "405호", "profileImageUrl": null, "blockedAt": "2026-10-20T20:00:00+09:00" }
+    { "blockedUserId": 5003, "name": "이도윤", "roomNumber": "405호", "profileImageUrl": null, "blockedAt": "2026-10-20T20:00:00" }
   ]
 }
 ```
@@ -1240,7 +1240,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 
 **Response 201**
 ```json
-{ "blockedUserId": 5003, "blockedAt": "2026-10-26T15:01:00+09:00" }
+{ "blockedUserId": 5003, "blockedAt": "2026-10-26T15:01:00" }
 ```
 
 | 필드 | 타입 | 설명 |
@@ -1271,7 +1271,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 
 **Response 200**
 ```json
-{ "active": true, "sanctionId": 31, "sanctionType": "RESTRICTION", "durationDays": 7, "reason": "게시판 욕설", "startsAt": "2026-10-27T10:00:00+09:00", "endsAt": "2026-11-03T10:00:00+09:00" }
+{ "active": true, "sanctionId": 31, "sanctionType": "RESTRICTION", "durationDays": 7, "reason": "게시판 욕설", "startsAt": "2026-10-27T10:00:00", "endsAt": "2026-11-03T10:00:00" }
 ```
 
 | 필드 | 타입 | 설명 |
@@ -1320,7 +1320,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
       "targetUserId": 5003, "targetUserName": "이도윤", "targetRoomNumber": "405호",
       "buildingId": 1, "buildingName": "망원 스테이",
       "contentPreview": "○○ 진짜 ...", "reasonTypes": ["ABUSE", "HARASSMENT"],
-      "reportCount": 3, "status": "RECEIVED", "latestReportedAt": "2026-10-26T15:00:00+09:00"
+      "reportCount": 3, "status": "RECEIVED", "latestReportedAt": "2026-10-26T15:00:00"
     }
   ],
   "page": 0, "size": 20, "totalElements": 4, "totalPages": 1
@@ -1359,17 +1359,17 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
   "target": {
     "targetType": "COMMENT", "targetId": "11", "sourceType": "POST", "sourceId": 2,
     "sourceTitle": "이번 주말 한강 피크닉 같이 가실 분?",
-    "snapshot": { "content": "○○ 진짜 ...", "authorName": "이도윤", "writtenAt": "2026-10-26T14:50:00+09:00" },
+    "snapshot": { "content": "○○ 진짜 ...", "authorName": "이도윤", "writtenAt": "2026-10-26T14:50:00" },
     "currentStatus": "ACTIVE"
   },
   "targetUser": { "userId": 5003, "name": "이도윤", "roomNumber": "405호", "buildingName": "망원 스테이" },
   "reports": [
-    { "reportId": 77, "reasonType": "ABUSE", "reasonDetail": "욕설이 포함되어 있어요.", "createdAt": "2026-10-26T15:00:00+09:00" },
-    { "reportId": 75, "reasonType": "HARASSMENT", "reasonDetail": null, "createdAt": "2026-10-26T14:55:00+09:00" }
+    { "reportId": 77, "reasonType": "ABUSE", "reasonDetail": "욕설이 포함되어 있어요.", "createdAt": "2026-10-26T15:00:00" },
+    { "reportId": 75, "reasonType": "HARASSMENT", "reasonDetail": null, "createdAt": "2026-10-26T14:55:00" }
   ],
   "history": {
     "reportedCount": 5, "warningCount": 1,
-    "sanctions": [ { "sanctionId": 20, "sanctionType": "WARNING", "durationDays": null, "reason": "도배", "startsAt": "2026-09-30T11:00:00+09:00", "endsAt": null, "revokedAt": null } ]
+    "sanctions": [ { "sanctionId": 20, "sanctionType": "WARNING", "durationDays": null, "reason": "도배", "startsAt": "2026-09-30T11:00:00", "endsAt": null, "revokedAt": null } ]
   },
   "status": "RECEIVED", "action": null, "adminMemo": null, "handledByName": null, "handledAt": null
 }
@@ -1422,7 +1422,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 
 **Response 200**
 ```json
-{ "reportId": 77, "handledReportCount": 3, "status": "RESOLVED", "action": "RESTRICTION", "sanctionId": 31, "endsAt": "2026-11-03T10:00:00+09:00", "handledAt": "2026-10-27T10:00:00+09:00" }
+{ "reportId": 77, "handledReportCount": 3, "status": "RESOLVED", "action": "RESTRICTION", "sanctionId": 31, "endsAt": "2026-11-03T10:00:00", "handledAt": "2026-10-27T10:00:00" }
 ```
 
 | 필드 | 타입 | 설명 |
@@ -1457,7 +1457,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 ```json
 {
   "content": [
-    { "sanctionId": 31, "userId": 5003, "userName": "이도윤", "roomNumber": "405호", "buildingName": "망원 스테이", "sanctionType": "RESTRICTION", "durationDays": 7, "reason": "게시판 욕설", "reportId": 77, "startsAt": "2026-10-27T10:00:00+09:00", "endsAt": "2026-11-03T10:00:00+09:00", "active": true, "createdByName": "망원 스테이 매니저", "revokedAt": null, "revokeReason": null }
+    { "sanctionId": 31, "userId": 5003, "userName": "이도윤", "roomNumber": "405호", "buildingName": "망원 스테이", "sanctionType": "RESTRICTION", "durationDays": 7, "reason": "게시판 욕설", "reportId": 77, "startsAt": "2026-10-27T10:00:00", "endsAt": "2026-11-03T10:00:00", "active": true, "createdByName": "망원 스테이 매니저", "revokedAt": null, "revokeReason": null }
   ],
   "page": 0, "size": 20, "totalElements": 1, "totalPages": 1
 }
@@ -1495,7 +1495,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 
 **Response 200**
 ```json
-{ "sanctionId": 31, "revokedAt": "2026-10-29T11:00:00+09:00" }
+{ "sanctionId": 31, "revokedAt": "2026-10-29T11:00:00" }
 ```
 
 | 필드 | 타입 | 설명 |

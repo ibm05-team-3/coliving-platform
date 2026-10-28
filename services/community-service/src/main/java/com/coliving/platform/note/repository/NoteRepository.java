@@ -2,7 +2,7 @@ package com.coliving.platform.note.repository;
 
 import com.coliving.platform.common.entity.SenderType;
 import com.coliving.platform.note.entity.NoteEntity;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
@@ -28,5 +28,5 @@ public interface NoteRepository extends JpaRepository<NoteEntity, Long> {
 	@Query("update NoteEntity n set n.readAt = :readAt "
 			+ "where n.noteThread.id = :threadId and n.senderType = :senderType and n.readAt is null")
 	int markAllRead(@Param("threadId") Long threadId, @Param("senderType") SenderType senderType,
-			@Param("readAt") OffsetDateTime readAt);
+			@Param("readAt") LocalDateTime readAt);
 }

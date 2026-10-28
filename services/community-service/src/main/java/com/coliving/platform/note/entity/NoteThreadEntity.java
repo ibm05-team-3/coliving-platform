@@ -1,6 +1,6 @@
 package com.coliving.platform.note.entity;
 
-import com.coliving.platform.common.time.KstTime;
+import com.coliving.platform.common.entity.BaseTimeEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -11,10 +11,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,7 +24,7 @@ import org.hibernate.type.SqlTypes;
 @Table(name = "note_threads")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class NoteThreadEntity {
+public class NoteThreadEntity extends BaseTimeEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -53,13 +51,7 @@ public class NoteThreadEntity {
 	@Column(columnDefinition = "TEXT")
 	private String memo;
 
-	private OffsetDateTime lastNoteAt;
-
-	@Column(nullable = false, updatable = false)
-	private OffsetDateTime createdAt;
-
-	@Column(nullable = false)
-	private OffsetDateTime updatedAt;
+	private LocalDateTime lastNoteAt;
 
 	public static NoteThreadEntity forMember(Long userId, NoteThreadType type, Long buildingId) {
 		NoteThreadEntity thread = new NoteThreadEntity();
@@ -83,13 +75,13 @@ public class NoteThreadEntity {
 	}
 
 	/** 사용자가 보낸 쪽지 → 미답변 */
-	public void receivedFromUser(OffsetDateTime at) {
+	public void receivedFromUser(LocalDateTime at) {
 		this.status = NoteThreadStatus.UNANSWERED;
 		this.lastNoteAt = at;
 	}
 
 	/** 관리자가 보낸 쪽지 → 답변 완료 */
-	public void sentByAdmin(OffsetDateTime at) {
+	public void sentByAdmin(LocalDateTime at) {
 		this.status = NoteThreadStatus.ANSWERED;
 		this.lastNoteAt = at;
 	}
@@ -106,17 +98,5 @@ public class NoteThreadEntity {
 	public void changeType(NoteThreadType type, Long buildingId) {
 		this.threadType = type;
 		this.buildingId = buildingId;
-	}
-
-	@PrePersist
-	void onCreate() {
-		OffsetDateTime now = KstTime.now();
-		createdAt = now;
-		updatedAt = now;
-	}
-
-	@PreUpdate
-	void onUpdate() {
-		updatedAt = KstTime.now();
 	}
 }
