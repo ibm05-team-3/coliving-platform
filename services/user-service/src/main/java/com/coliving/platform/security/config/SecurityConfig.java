@@ -6,6 +6,7 @@ import com.coliving.platform.security.http.SessionCookieFactory;
 import com.coliving.platform.security.oauth.RedisOAuth2AuthorizationRequestRepository;
 import com.coliving.platform.security.service.AuthService;
 import com.coliving.platform.security.service.CustomOAuth2UserService;
+import com.coliving.platform.security.service.CustomOidcUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -38,6 +39,7 @@ public class SecurityConfig {
     private final AuthenticationFailureHandler socialFailureHandler;
 
     private final CustomOAuth2UserService customOAuth2UserService;
+    private final CustomOidcUserService customOidcUserService;
     private final AuthService authService;
     private final SessionCookieFactory sessionCookieFactory;
     private final RedisOAuth2AuthorizationRequestRepository authorizationRequestRepository;
@@ -88,6 +90,7 @@ public class SecurityConfig {
                         .redirectionEndpoint(endpoint -> endpoint.baseUri(OAUTH_CALLBACK_URI))
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService)
+                                .oidcUserService(customOidcUserService)
                         )
                         .successHandler(socialSuccessHandler)
                         .failureHandler(socialFailureHandler)

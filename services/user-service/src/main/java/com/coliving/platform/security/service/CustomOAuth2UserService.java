@@ -32,24 +32,34 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     public OAuth2User loadUser(@NonNull OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
         OAuth2User oAuth2User = super.loadUser(userRequest);
 
-        SocialProviderType registration;
         Map<String, Object> attributes;
-        String providerId;
-
-        String registrationId = userRequest.getClientRegistration().getRegistrationId().toUpperCase();
-        if (SocialProviderType.NAVER.name().equals(registrationId)) {
-            registration = SocialProviderType.NAVER;
+        String registrationId = userRequest.getClientRegistration().getRegistrationId();
+        if (SocialProviderType.NAVER.name().equalsIgnoreCase(registrationId)) {
             attributes = responseAttributes(oAuth2User);
-            providerId = requiredText(attributes, "id");
-        } else if (SocialProviderType.GOOGLE.name().equals(registrationId)) {
-            registration = SocialProviderType.GOOGLE;
+        } else if (SocialProviderType.GOOGLE.name().equalsIgnoreCase(registrationId)) {
             attributes = oAuth2User.getAttributes();
+        } else {
+            throw new OAuth2AuthenticationException("지원하지 않은 소셜 로그인입니다.");
+        }
+        return loadLinkedUser(registrationId, attributes);
+    }
+
+    @Transactional
+    public CustomOAuth2User loadLinkedUser(String registrationId, Map<String, Object> attributes) {
+        SocialProviderType registration;
+        String providerId;
+        String registrationName = registrationId.toUpperCase();
+        if (SocialProviderType.NAVER.name().equals(registrationName)) {
+            registration = SocialProviderType.NAVER;
+            providerId = requiredText(attributes, "id");
+        } else if (SocialProviderType.GOOGLE.name().equals(registrationName)) {
+            registration = SocialProviderType.GOOGLE;
             providerId = requiredText(attributes, "sub");
         } else {
             throw new OAuth2AuthenticationException("지원하지 않은 소셜 로그인입니다.");
         }
 
-        String socialId = registrationId + "_" + providerId;
+        String socialId = registrationName + "_" + providerId;
         return socialAccountRepository.findById(socialId)
                 .map(account -> new CustomOAuth2User(attributes, account.getUser()))
                 .orElseGet(() -> createSocialUser(socialId, registration, providerId, attributes));
