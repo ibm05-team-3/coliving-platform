@@ -71,7 +71,9 @@ public class SessionCookieBearerWebFilter implements WebFilter {
 
     private boolean isAnonymousAuthRequest(ServerWebExchange exchange) {
         String path = exchange.getRequest().getURI().getPath();
-        return path.endsWith("/user/login") || path.startsWith("/login/oauth2");
+        return path.endsWith("/user/login")
+                || path.contains("/oauth2/authorization/")
+                || path.contains("/oauth2/code/");
     }
 
     private ServerWebExchange withBearer(ServerWebExchange exchange, String accessToken) {

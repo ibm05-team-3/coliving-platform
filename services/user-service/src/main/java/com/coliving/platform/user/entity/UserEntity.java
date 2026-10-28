@@ -18,16 +18,12 @@ public class UserEntity extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    // 연락처. 비어 있을 수 있고 로그인 식별자로 쓰지 않는다.
     private String email;
 
-    // 소셜만 있으면 null
-    @ToString.Exclude
-    @Column
-    private String password;
-
     @Column(nullable = false, length = 100)
-    private String name;
+    @Builder.Default
+    private String name = "MY";
 
     private String phone;
 

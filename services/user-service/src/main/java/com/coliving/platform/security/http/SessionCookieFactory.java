@@ -34,7 +34,7 @@ public class SessionCookieFactory {
         if (cookies == null) {
             return Optional.empty();
         }
-        String name = appProperties.cookie().refreshTokenName();
+        String name = appProperties.cookie().sessionCookieName();
         for (Cookie cookie : cookies) {
             if (name.equals(cookie.getName()) && cookie.getValue() != null && !cookie.getValue().isBlank()) {
                 return Optional.of(cookie.getValue());
@@ -44,8 +44,8 @@ public class SessionCookieFactory {
     }
 
     private ResponseCookie.ResponseCookieBuilder base(String value) {
-        // refreshTokenName is the configured cookie name. The value is a session id.
-        return ResponseCookie.from(appProperties.cookie().refreshTokenName(), value)
+        // sessionCookieName is the configured cookie name. The value is a session id.
+        return ResponseCookie.from(appProperties.cookie().sessionCookieName(), value)
                 .httpOnly(true)
                 .secure(appProperties.cookie().secure())
                 .path("/")
