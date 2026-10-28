@@ -11,6 +11,7 @@ public record AuthProperties(
         String accessTokenKeyId,
         String accessTokenIssuer,
         Duration accessTokenExpiration,
-        Duration refreshTokenExpiration
+        Duration refreshTokenExpiration,
+        Duration accessTokenRefreshSkew
 ) {
 }

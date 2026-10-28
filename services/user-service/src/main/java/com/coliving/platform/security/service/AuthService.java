@@ -11,15 +11,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsChecker;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class AuthService {
-    private static final Duration ACCESS_REFRESH_SKEW = Duration.ofSeconds(15);
-
     private final AccessTokenProvider accessTokenProvider;
     private final RefreshTokenDAO refreshTokenDAO;
     private final BrowserSessionDAO browserSessionDAO;
@@ -77,7 +74,7 @@ public class AuthService {
     }
 
     private boolean accessStillValid(BrowserSession session) {
-        return session.accessExpiresAtEpochMilli() - ACCESS_REFRESH_SKEW.toMillis() > Instant.now().toEpochMilli();
+        return session.accessExpiresAtEpochMilli() - authProperties.accessTokenRefreshSkew().toMillis() > Instant.now().toEpochMilli();
     }
 
     private UserDetails findAndValidateUser(String accessSub) {
