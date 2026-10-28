@@ -14,12 +14,14 @@ export default function App() {
     <ApplyProvider>
       <Routes>
         <Route element={<Layout />}>
+          {/* 신청 전: roomId만 있음 (?roomId=1). 이전 단계로 돌아오면 &applicationNo= 도 붙음 */}
           <Route path="/apply/room" element={<ApplyRoomPage />} />
-          <Route path="/apply/form" element={<ApplyFormPage />} />
-          <Route path="/apply/submitted" element={<ApplySubmittedPage />} />
-          <Route path="/contract/sign" element={<ContractSignPage />} />
-          <Route path="/contract/pay" element={<ContractPayPage />} />
-          <Route path="/contract/complete" element={<ContractCompletePage />} />
+          {/* 신청 후: 신청번호를 URL에 둔다. 접근 권한은 서버가 JWT로 본인 확인 */}
+          <Route path="/apply/:applicationNo/form" element={<ApplyFormPage />} />
+          <Route path="/apply/:applicationNo/submitted" element={<ApplySubmittedPage />} />
+          <Route path="/contract/:applicationNo/sign" element={<ContractSignPage />} />
+          <Route path="/contract/:applicationNo/pay" element={<ContractPayPage />} />
+          <Route path="/contract/:applicationNo/complete" element={<ContractCompletePage />} />
           <Route path="*" element={<Navigate to="/apply/room" replace />} />
         </Route>
       </Routes>

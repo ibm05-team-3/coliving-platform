@@ -3,6 +3,7 @@ package com.coliving.platform.contract.service;
 import com.coliving.platform.common.exception.RoomNotFoundException;
 import com.coliving.platform.common.exception.RoomServiceException;
 import com.coliving.platform.common.exception.RoomServiceUnavailableException;
+import com.coliving.platform.contract.dto.internal.RoomContractInfoDTO;
 import com.coliving.platform.grpc.room.GetRoomContractInfoRequest;
 import com.coliving.platform.grpc.room.RoomContractInfo;
 import com.coliving.platform.grpc.room.RoomServiceGrpc;

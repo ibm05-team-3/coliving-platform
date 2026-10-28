@@ -15,3 +15,13 @@ export const moveOutDate = (moveIn, months) => {
 };
 
 export const DAY_NAMES = DAY;
+
+// "전용 욕실 · 13.5㎡ · 3층" (RoomApplyResponse의 roomFacilities + area + floorNumber 조합)
+export const roomSpec = (r) => [...r.roomFacilities, `${r.area}㎡`, `${r.floorNumber}층`].join(' · ');
+
+// 금액 표시 행: 첫 결제 금액에 들어가는 항목을 화면마다 똑같이 보여주기 위함
+export const amountRows = (r) => [
+  ['월 이용료', `${won(r.monthlyFee)}원`],
+  ['관리비 (월)', `${won(r.managementFee)}원`],
+  ['보증금', `${won(r.deposit)}원`],
+];

@@ -1,14 +1,16 @@
 import { useState } from 'react';
 import { NavLink } from 'react-router-dom';
+import { MOCK_APPLICATION_NO } from '../context/ApplyContext';
 
 // 발표·확인용 화면 이동 바. VITE_PREVIEW=1 로 빌드할 때만 보인다 (실서비스 미포함)
+const NO = MOCK_APPLICATION_NO;
 const SCREENS = [
-  ['/apply/room', '1-1 호실 선택'],
-  ['/apply/form', '1-2 신청자 정보'],
-  ['/apply/submitted', '접수 완료'],
-  ['/contract/sign', '2 계약서·서명'],
-  ['/contract/pay', '3 결제'],
-  ['/contract/complete', '4 계약 완료'],
+  ['/apply/room?roomId=1', '1-1 호실 선택'],
+  [`/apply/${NO}/form`, '1-2 신청자 정보'],
+  [`/apply/${NO}/submitted`, '접수 완료'],
+  [`/contract/${NO}/sign`, '2 계약서·서명'],
+  [`/contract/${NO}/pay`, '3 결제'],
+  [`/contract/${NO}/complete`, '4 계약 완료'],
 ];
 
 export default function PreviewBar() {

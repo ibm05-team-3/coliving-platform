@@ -4,12 +4,14 @@ import Button from '../components/Button';
 import InfoList from '../components/InfoList';
 import StatusIcon from '../components/StatusIcon';
 import StepNav from '../components/StepNav';
-import { ROOM, useApply } from '../context/ApplyContext';
+import { useApplicationNo, useApply } from '../context/ApplyContext';
 import { ymd } from '../lib/format';
 
 export default function ApplySubmittedPage() {
   const navigate = useNavigate();
   const a = useApply();
+  const ROOM = a.room;
+  const applicationNo = useApplicationNo();
 
   return (
     <>
@@ -26,7 +28,7 @@ export default function ApplySubmittedPage() {
         <InfoList
           className="mt-8"
           rows={[
-            ['신청 번호', a.applicationNo],
+            ['신청 번호', applicationNo],
             ['호실', `${ROOM.buildingName} ${ROOM.roomName} · ${ROOM.roomType}`],
             ['입주일 · 기간', `${ymd(a.moveIn)} · ${a.months}개월`],
             ['진행 상태', <Badge tone="warn">심사 중</Badge>],
@@ -38,7 +40,7 @@ export default function ApplySubmittedPage() {
           <p className="mt-1.5">
             <b>신청이 반려됐어요.</b> <span className="text-sub">사유: 희망 입주일에 해당 호실을 이용할 수 없어요.</span>
           </p>
-          <button type="button" onClick={() => navigate('/apply/room')} className="mt-2 font-bold text-primary-strong hover:underline">
+          <button type="button" onClick={() => navigate(`/apply/room?roomId=${ROOM.roomId}`)} className="mt-2 font-bold text-primary-strong hover:underline">
             다른 날짜로 다시 신청하기 ›
           </button>
         </div>

@@ -6,7 +6,7 @@ import InfoList from '../components/InfoList';
 import PageShell from '../components/PageShell';
 import Section from '../components/Section';
 import StepNav from '../components/StepNav';
-import { ROOM, useApply } from '../context/ApplyContext';
+import { useApplicationNo, useApply } from '../context/ApplyContext';
 import { won, ymd, ymdDay } from '../lib/format';
 
 // 결제 기한: 실제로는 contract_application.expires_at (승인 후 1일)과 서버 시각을 받아서 계산.
@@ -23,6 +23,8 @@ const hms = (ms) => {
 export default function ContractPayPage() {
   const navigate = useNavigate();
   const a = useApply();
+  const ROOM = a.room;
+  const applicationNo = useApplicationNo(); // GET /contract-service/apply/applications/{applicationNo}/payment
   const deadline = MOCK_DEADLINE;
   const [now, setNow] = useState(deadline.getTime() - MOCK_REMAIN_MS);
 
@@ -30,8 +32,6 @@ export default function ContractPayPage() {
     const t = setInterval(() => setNow((n) => n + 1000), 1000);
     return () => clearInterval(t);
   }, []);
-
-  const discount = ROOM.monthlyFee - a.monthly;
 
   return (
     <>
@@ -52,9 +52,7 @@ export default function ContractPayPage() {
                 rows={[
                   ['보증금', `${won(ROOM.deposit)}원`],
                   ['첫 달 이용료', `${won(ROOM.monthlyFee)}원`],
-                  ...(discount > 0
-                    ? [[`장기 계약 할인 (${a.months}개월 · ${a.period.discount * 100}%)`, <span className="text-warn-fg">-{won(discount)}원</span>]]
-                    : []),
+                  ['첫 달 관리비', `${won(ROOM.managementFee)}원`],
                 ]}
               />
             </Section>
@@ -80,7 +78,7 @@ export default function ContractPayPage() {
               ]}
             />
             <AmountBox label="총 결제 금액" amount={a.firstPayment} />
-            <Button className="w-full" onClick={() => navigate('/contract/complete')}>
+            <Button className="w-full" onClick={() => navigate(`/contract/${applicationNo}/complete`)}>
               {won(a.firstPayment)}원 결제하기
             </Button>
             <p className="text-xs text-sub">결제 금액은 서버에서 계약 정보로 다시 계산해 확인해요.</p>

@@ -8,8 +8,8 @@ import InfoList from '../components/InfoList';
 import PageShell from '../components/PageShell';
 import Section from '../components/Section';
 import StepNav from '../components/StepNav';
-import { ROOM, useApply } from '../context/ApplyContext';
-import { won, ymdDay } from '../lib/format';
+import { useApplicationNo, useApply } from '../context/ApplyContext';
+import { amountRows, won, ymdDay } from '../lib/format';
 
 const inputCls =
   'h-11 w-full rounded-lg border border-line bg-surface px-4 text-sm text-ink placeholder:text-muted focus:border-primary focus:outline-none';
@@ -35,6 +35,8 @@ function Field({ label, children, hint }) {
 export default function ApplyFormPage() {
   const navigate = useNavigate();
   const a = useApply();
+  const ROOM = a.room;
+  const applicationNo = useApplicationNo(); // GET /contract-service/apply/applications/{applicationNo}/form
   const [lang, setLang] = useState('ko');
   const [agreed, setAgreed] = useState({ privacy: true, age: true, notice: true });
   const allAgreed = TERMS.every((t) => agreed[t.id]);
@@ -125,8 +127,7 @@ export default function ApplyFormPage() {
                 ['호실', `${ROOM.buildingName} ${ROOM.roomName}`],
                 ['입주일', ymdDay(a.moveIn)],
                 ['계약 기간', `${a.months}개월`],
-                ['월 이용료', `${won(a.monthly)}원`],
-                ['보증금', `${won(ROOM.deposit)}원`],
+                ...amountRows(ROOM),
               ]}
             />
             <AmountBox amount={a.firstPayment} />
@@ -134,10 +135,10 @@ export default function ApplyFormPage() {
               신청서를 제출하면 관리자 심사가 시작돼요. 승인 후 계약서 확인과 결제를 진행해요.
             </p>
             <div className="space-y-2 pt-1">
-              <Button className="w-full" disabled={!allAgreed} onClick={() => navigate('/apply/submitted')}>
+              <Button className="w-full" disabled={!allAgreed} onClick={() => navigate(`/apply/${applicationNo}/submitted`)}>
                 신청서 제출
               </Button>
-              <Button variant="outline" className="w-full" onClick={() => navigate('/apply/room')}>
+              <Button variant="outline" className="w-full" onClick={() => navigate(`/apply/room?roomId=${ROOM.roomId}&applicationNo=${applicationNo}`)}>
                 ‹ 이전
               </Button>
             </div>

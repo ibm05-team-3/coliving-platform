@@ -22,5 +22,6 @@ public record RoomApplyResponse(
         Integer floorNumber,
         Long monthlyFee,
         Long deposit,
+        Long managementFee,
         boolean available            // "입주 가능" 배지
 ) {}

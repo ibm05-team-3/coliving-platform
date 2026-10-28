@@ -22,13 +22,14 @@ public record ApplyFormResponse(
         Long deposit,
         Long firstPaymentAmount,   // monthlyFee + deposit
 
+
         // 신청자 정보 (멤버 서비스에서 불러옴)
         String name,               // 수정 불가
         String phone,              // 수정 불가
         String email,              // 수정 가능
         String address,            // 수정 가능, 없으면 null
 
-        List<TermItem> terms
+        String  termsVersion
 ) {
 
     public record TermItem(

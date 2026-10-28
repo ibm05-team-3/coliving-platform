@@ -6,10 +6,30 @@
   <component name="ChangeListManager">
     <list default="true" id="a1a9ead6-8e8e-467f-ad8f-c97297c949c1" name="변경" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontends/contract-web/src/App.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontends/contract-web/src/App.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontends/contract-web/src/components/PreviewBar.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontends/contract-web/src/components/PreviewBar.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontends/contract-web/src/context/ApplyContext.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontends/contract-web/src/context/ApplyContext.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontends/contract-web/src/lib/format.js" beforeDir="false" afterPath="$PROJECT_DIR$/frontends/contract-web/src/lib/format.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontends/contract-web/src/pages/ApplyFormPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontends/contract-web/src/pages/ApplyFormPage.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontends/contract-web/src/pages/ApplyRoomPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontends/contract-web/src/pages/ApplyRoomPage.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontends/contract-web/src/pages/ApplySubmittedPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontends/contract-web/src/pages/ApplySubmittedPage.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontends/contract-web/src/pages/ContractCompletePage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontends/contract-web/src/pages/ContractCompletePage.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontends/contract-web/src/pages/ContractPayPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontends/contract-web/src/pages/ContractPayPage.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontends/contract-web/src/pages/ContractSignPage.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontends/contract-web/src/pages/ContractSignPage.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/services/contract-service/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/services/contract-service/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/services/contract-service/src/main/java/com/coliving/platform/contract/controller/ApplyRoomController.java" beforeDir="false" afterPath="$PROJECT_DIR$/services/contract-service/src/main/java/com/coliving/platform/contract/controller/ApplyRoomController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/services/contract-service/src/main/java/com/coliving/platform/contract/dto/application/ApplicationDraftResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/services/contract-service/src/main/java/com/coliving/platform/contract/dto/application/ApplicationDraftResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/services/contract-service/src/main/java/com/coliving/platform/contract/dto/application/ApplicationSubmitRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/services/contract-service/src/main/java/com/coliving/platform/contract/dto/application/ApplicationSubmitRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/services/contract-service/src/main/java/com/coliving/platform/contract/dto/application/ApplyFormResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/services/contract-service/src/main/java/com/coliving/platform/contract/dto/application/ApplyFormResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/services/contract-service/src/main/java/com/coliving/platform/contract/dto/internal/RoomSnapshot.java" beforeDir="false" afterPath="$PROJECT_DIR$/services/contract-service/src/main/java/com/coliving/platform/contract/dto/internal/RoomSnapshot.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/services/contract-service/src/main/java/com/coliving/platform/contract/dto/payment/PaymentInfoResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/services/contract-service/src/main/java/com/coliving/platform/contract/dto/payment/PaymentInfoResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/services/contract-service/src/main/java/com/coliving/platform/contract/dto/room/RoomApplyResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/services/contract-service/src/main/java/com/coliving/platform/contract/dto/room/RoomApplyResponse.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/services/contract-service/src/main/java/com/coliving/platform/contract/entity/Contract.java" beforeDir="false" afterPath="$PROJECT_DIR$/services/contract-service/src/main/java/com/coliving/platform/contract/entity/Contract.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/services/contract-service/src/main/java/com/coliving/platform/contract/service/ApplyRoomService.java" beforeDir="false" afterPath="$PROJECT_DIR$/services/contract-service/src/main/java/com/coliving/platform/contract/service/ApplyRoomService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/services/contract-service/src/main/java/com/coliving/platform/contract/service/RoomQueryService.java" beforeDir="false" afterPath="$PROJECT_DIR$/services/contract-service/src/main/java/com/coliving/platform/contract/service/RoomQueryService.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/services/contract-service/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/services/contract-service/src/main/resources/application.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/services/contract-service/src/main/resources/db/schma-dev-contract-service.sql" beforeDir="false" afterPath="$PROJECT_DIR$/services/contract-service/src/main/resources/db/schma-dev-contract-service.sql" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -49,13 +69,17 @@
     <option name="RECENT_TEMPLATES">
       <list>
         <option value="Enum" />
-        <option value="Class" />
         <option value="Record" />
+        <option value="Interface" />
+        <option value="Class" />
       </list>
     </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
   </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 6,
@@ -69,36 +93,42 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Gradle.api-gateway 빌드.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.config-server 빌드.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.eureka-server 빌드.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.user-service 빌드.executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
-    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
-    &quot;RequestMappingsPanelWidth0&quot;: &quot;436&quot;,
-    &quot;RequestMappingsPanelWidth1&quot;: &quot;435&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;Spring Boot.ApiGatewayApplication.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.ConfigServerApplication.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.EurekaApplication.executor&quot;: &quot;Run&quot;,
-    &quot;Spring Boot.UserApplication.executor&quot;: &quot;Run&quot;,
-    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;feature/git-practice-chfhd951&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/DEV/coliving-platform/services/contract-service/src/main/java/com/coliving/platform/contract/dto&quot;,
-    &quot;node.js.detected.package.jshint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.jshint&quot;: &quot;&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;run.configurations.included.in.services&quot;: &quot;true&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.language.and.region&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Gradle.Build api-gateway.executor": "Run",
+    "Gradle.Build config-server.executor": "Run",
+    "Gradle.Build contract-service.executor": "Run",
+    "Gradle.Build eureka-server.executor": "Run",
+    "Gradle.Build user-service.executor": "Run",
+    "Gradle.api-gateway 빌드.executor": "Run",
+    "Gradle.config-server 빌드.executor": "Run",
+    "Gradle.eureka-server 빌드.executor": "Run",
+    "Gradle.user-service 빌드.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "Spring Boot.ApiGatewayApplication.executor": "Run",
+    "Spring Boot.ConfigServerApplication.executor": "Run",
+    "Spring Boot.ContractApplication.executor": "Run",
+    "Spring Boot.EurekaApplication.executor": "Run",
+    "Spring Boot.UserApplication.executor": "Run",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "feature/git-practice-chfhd951",
+    "ignore.virus.scanning.warn.message": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/DEV/coliving-platform/services/contract-service/src/main/java/com/coliving/platform/contract/dto",
+    "node.js.detected.package.jshint": "true",
+    "node.js.selected.package.jshint": "",
+    "nodejs_package_manager_path": "npm",
+    "run.configurations.included.in.services": "true",
+    "settings.editor.selected.configurable": "preferences.language.and.region"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="C:\DEV\coliving-platform\services\contract-service\src\main\java\com\coliving\platform\contract\dto" />
@@ -108,11 +138,11 @@
       <recent name="C:\DEV\coliving-platform\frontends\contract-web" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\DEV\coliving-platform\services\contract-service\src\main\java\com\coliving\platform\contract\service" />
       <recent name="C:\DEV\coliving-platform\services\contract-service\src\main\java\com\coliving\platform\contract\dto" />
       <recent name="C:\DEV\coliving-platform\services\contract-service" />
       <recent name="C:\DEV\coliving-platform\services" />
       <recent name="C:\DEV\coliving-platform\services\contract-service\src\main\resources\db" />
-      <recent name="C:\DEV\coliving-platform\services\contract-service\src\main\java\com\coliving\platform\contract\service" />
     </key>
   </component>
   <component name="RunDashboard">
@@ -131,6 +161,7 @@
             <map>
               <entry key="ApiGatewayApplication" value="STOPPED" />
               <entry key="ConfigServerApplication" value="STOPPED" />
+              <entry key="ContractApplication" value="STOPPED" />
               <entry key="EurekaApplication" value="STOPPED" />
               <entry key="UserApplication" value="STOPPED" />
             </map>
@@ -139,7 +170,7 @@
       </map>
     </option>
   </component>
-  <component name="RunManager" selected="Spring Boot.UserApplication">
+  <component name="RunManager" selected="Spring Boot.ContractApplication">
     <configuration name="ApiGatewayApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="api-gateway.main" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="com.coliving.platform.ApiGatewayApplication" />
@@ -198,8 +229,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Spring Boot.UserApplication" />
         <item itemvalue="Spring Boot.ConfigServerApplication" />
+        <item itemvalue="Spring Boot.UserApplication" />
       </list>
     </recent_temporary>
   </component>
@@ -223,6 +254,32 @@
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="UnknownFeatures">
+    <option featureType="dependencySupport" implementationName="java:io.grpc:grpc-protobuf" />
+    <option featureType="dependencySupport" implementationName="java:org.springframework.security:spring-security-core" />
+    <option featureType="dependencySupport" implementationName="java:org.springframework:spring-core" />
+    <option featureType="dependencySupport" implementationName="javascript:npm:react" />
+    <option featureType="dependencySupport" implementationName="java:jakarta.validation:jakarta.validation-api" />
+    <option featureType="dependencySupport" implementationName="javascript:npm:tailwindcss" />
+    <option featureType="dependencySupport" implementationName="java:org.springframework.integration:spring-integration-core" />
+    <option featureType="dependencySupport" implementationName="javascript:npm:vite" />
+    <option featureType="dependencySupport" implementationName="java:io.grpc:grpc-protobuf-lite" />
+    <option featureType="dependencySupport" implementationName="java:io.projectreactor:reactor-core" />
+    <option featureType="dependencySupport" implementationName="java:org.springframework.data:spring-data-commons" />
+    <option featureType="dependencySupport" implementationName="executable:kubectl" />
+    <option featureType="dependencySupport" implementationName="java:org.springframework.cloud:spring-cloud-context" />
+    <option featureType="dependencySupport" implementationName="java:org.hibernate.validator:hibernate-validator" />
+    <option featureType="dependencySupport" implementationName="java:org.springframework:spring-webmvc" />
+    <option featureType="dependencySupport" implementationName="java:org.projectlombok:lombok" />
+    <option featureType="dependencySupport" implementationName="java:org.springframework.cloud:spring-cloud-stream" />
+    <option featureType="dependencySupport" implementationName="executable:docker" />
+    <option featureType="dependencySupport" implementationName="java:jakarta.persistence:jakarta.persistence-api" />
+    <option featureType="dependencySupport" implementationName="java:io.grpc:grpc-api" />
+    <option featureType="dependencySupport" implementationName="java:org.flywaydb:flyway-core" />
+    <option featureType="dependencySupport" implementationName="java:jakarta.ws.rs:jakarta.ws.rs-api" />
+    <option featureType="dependencySupport" implementationName="java:org.springframework:spring-messaging" />
+    <option featureType="dependencySupport" implementationName="java:org.springframework.boot:spring-boot" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

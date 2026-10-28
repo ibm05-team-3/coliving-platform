@@ -31,6 +31,7 @@ import java.time.LocalDate;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)   // JPA용 기본 생성자, 외부에서 new 금지
 public class Contract {
 
+    public static final String CURRENT_TERMS_VERSION = "1";
     private static final Duration DRAFT_TTL = Duration.ofDays(2);
     private static final Duration PAYMENT_TTL = Duration.ofDays(1);
 
@@ -57,7 +58,7 @@ public class Contract {
     @Column(name = "region", nullable = false, length = 100)
     private String region;   // 서울시 성동구]
 
-    @Column(name = "adrress", nullable = false, length = 500)
+    @Column(name = "address", nullable = false, length = 500)
     private String address;   //주소]
 
 
@@ -189,10 +190,13 @@ public class Contract {
         requireActiveDraft(now);//(상태가 draft이고 기한이 안지났는지)
         //약관에 동의를 했는지
         if (termsVersion == null) throw new IllegalArgumentException("약관에 동의해야 제출할 수 있습니다");
+        this.termsVersion = CURRENT_TERMS_VERSION;
+        this.termsAgreedAt = now;
         //새로 조회한 호실id가 신청한 호실 id와 일치하는지 확인
         if (!this.roomId.equals(latestRoom.roomId())) {
             throw new IllegalArgumentException("신청한 호실과 조회한 호실이 다릅니다");
         }
+
 
         // 2) 그다음에 값을 바꾼다
         //최신 호실정보로 금액을 한번더 계산.
@@ -256,7 +260,7 @@ public class Contract {
         this.buildingName = room.buildingName();
         this.roomName = room.roomName();
         this.moveInDate = moveInDate;
-        this.moveOutDate = moveInDate.plusMonths(contractMonths);   // 퇴실 예정일은 서버가 계산
+        this.moveOutDate = moveInDate.plusMonths(contractMonths).minusDays((1));   // 퇴실 예정일은 서버가 계산
         this.contractMonths = (short) contractMonths;
         this.monthlyFee = room.monthlyFee();
         this.deposit = room.deposit();
@@ -273,4 +277,8 @@ public class Contract {
             throw new IllegalStateException("작성 기한이 지난 신청입니다");
         }
     }
+    // Contract 엔티티 안에 상수 하나
+
+
+
 }

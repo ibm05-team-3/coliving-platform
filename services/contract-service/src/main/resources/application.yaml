@@ -7,4 +7,7 @@ spring:
   config:
     import: "optional:configserver:http://localhost:8888/"
   profiles:
-    active: dev
+    active: dev #,dummy-room     # 쉼표로 추가
+  cloud:
+    config:
+      label: feature/config-chfhd951   # 이 서비스만 feature 브랜치를 읽음

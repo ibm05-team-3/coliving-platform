@@ -20,6 +20,7 @@ public record PaymentInfoResponse(
         // 오른쪽 신청 정보
         String buildingName,
         String roomName,
+        Long managementFee,
         LocalDate moveInDate,
         LocalDate moveOutDate,
 

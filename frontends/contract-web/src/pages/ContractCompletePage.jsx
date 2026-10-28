@@ -3,13 +3,15 @@ import Button from '../components/Button';
 import InfoList from '../components/InfoList';
 import StatusIcon from '../components/StatusIcon';
 import StepNav from '../components/StepNav';
-import { ROOM, useApply } from '../context/ApplyContext';
+import { useApplicationNo, useApply } from '../context/ApplyContext';
 import { ymd } from '../lib/format';
 import { useNavigate } from 'react-router-dom';
 
 export default function ContractCompletePage() {
   const navigate = useNavigate();
   const a = useApply();
+  const ROOM = a.room;
+  const applicationNo = useApplicationNo();
 
   return (
     <>
@@ -26,7 +28,7 @@ export default function ContractCompletePage() {
         <InfoList
           className="mt-8"
           rows={[
-            ['계약 번호', a.applicationNo],
+            ['계약 번호', applicationNo],
             ['호실', `${ROOM.buildingName} ${ROOM.roomName} · ${ROOM.roomType}`],
             ['계약 기간', `${ymd(a.moveIn)} ~ ${ymd(a.moveOut)} (${a.months}개월)`],
             ['결제 수단', '카카오페이'],

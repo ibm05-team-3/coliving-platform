@@ -10,12 +10,14 @@ import PageShell from '../components/PageShell';
 import Section from '../components/Section';
 import SignaturePad from '../components/SignaturePad';
 import StepNav from '../components/StepNav';
-import { ROOM, useApply } from '../context/ApplyContext';
+import { useApplicationNo, useApply } from '../context/ApplyContext';
 import { ymd } from '../lib/format';
 
 export default function ContractSignPage() {
   const navigate = useNavigate();
   const a = useApply();
+  const ROOM = a.room;
+  const applicationNo = useApplicationNo();
   const [read, setRead] = useState(false);
   const [signed, setSigned] = useState(false);
   const [clearSignal, setClearSignal] = useState(0);
@@ -68,14 +70,14 @@ export default function ContractSignPage() {
           <>
             <InfoList
               rows={[
-                ['신청 번호', a.applicationNo],
+                ['신청 번호', applicationNo],
                 ['호실', `${ROOM.buildingName} ${ROOM.roomName}`],
                 ['계약 기간', `${ymd(a.moveIn)} ~ ${ymd(a.moveOut)}`],
                 ['심사 결과', <Badge tone="ok">승인</Badge>],
               ]}
             />
             <AmountBox amount={a.firstPayment} />
-            <Button className="w-full" disabled={!ready} onClick={() => navigate('/contract/pay')}>
+            <Button className="w-full" disabled={!ready} onClick={() => navigate(`/contract/${applicationNo}/pay`)}>
               서명 완료하고 결제하기 ›
             </Button>
             <p className="text-xs text-sub">계약서 확인, 본인 인증, 서명을 모두 마쳐야 버튼이 활성화돼요.</p>

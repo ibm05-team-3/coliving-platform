@@ -9,7 +9,6 @@ public record RoomSnapshot(
         String buildingName,
         String roomName,
         long monthlyFee,
-        long deposit,
-        long discountAmount,     // ⚠ 10/27 할인 제외 → 사용처 정리 후 삭제
-        String discountNote      // ⚠ 10/27 할인 제외 → 사용처 정리 후 삭제
+        long deposit
+
 ) {}

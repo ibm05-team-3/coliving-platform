@@ -2,7 +2,8 @@ CREATE DATABASE contract_service ENCODING 'UTF8';
 
 CREATE EXTENSION IF NOT EXISTS btree_gist;
  ALTER TABLE contract_signature DROP COLUMN signer_ip;
-
+--0. 신청번호 생성
+CREATE SEQUENCE application_no_seq;
 -- 1. 신청(계약) 본체: 신청 = 계약 1:1, DRAFT부터 COMPLETED까지 한 행
 CREATE TABLE contract_application (
     id                 BIGSERIAL    PRIMARY KEY,
@@ -14,7 +15,7 @@ CREATE TABLE contract_application (
     move_in_date       DATE         NOT NULL,
     move_out_date      DATE         NOT NULL,             -- 퇴실 예정일
     stay_period        DATERANGE    GENERATED ALWAYS AS
-                       (daterange(move_in_date, move_out_date, '[)')) STORED,
+                       (daterange(move_in_date, move_out_date, '[]')) STORED,
     contract_months    SMALLINT     NOT NULL CHECK (contract_months > 0),
     status             VARCHAR(30)  NOT NULL DEFAULT 'DRAFT'
         CHECK (status IN ('DRAFT','SUBMITTED','APPROVED','PAID','COMPLETED',
