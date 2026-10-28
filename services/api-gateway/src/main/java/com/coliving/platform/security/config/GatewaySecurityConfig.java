@@ -70,7 +70,7 @@ public class GatewaySecurityConfig {
                                 "/login/oauth2/**"
                         ).permitAll()
                         .pathMatchers("/*/admin/**").hasRole("ADMIN")
-                        .anyExchange().authenticated()
+                        .anyExchange().permitAll()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
