@@ -1,0 +1,17 @@
+meta {
+  name: 1-1 내 쪽지 목록
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/community-service/notes?page=0&size=30
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{userId}}
+}
+
+

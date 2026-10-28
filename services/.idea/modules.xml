@@ -3,6 +3,8 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/api-gateway.main.iml" filepath="$PROJECT_DIR$/.idea/modules/api-gateway.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/community-service.main.iml" filepath="$PROJECT_DIR$/.idea/modules/community-service.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/community-service.test.iml" filepath="$PROJECT_DIR$/.idea/modules/community-service.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/services.iml" filepath="$PROJECT_DIR$/.idea/services.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/user-service.main.iml" filepath="$PROJECT_DIR$/.idea/modules/user-service.main.iml" />
     </modules>
