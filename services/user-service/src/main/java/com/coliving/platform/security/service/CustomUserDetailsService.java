@@ -1,6 +1,8 @@
 package com.coliving.platform.security.service;
 
+import com.coliving.platform.user.entity.UserEmailAccountEntity;
 import com.coliving.platform.user.entity.UserEntity;
+import com.coliving.platform.user.repository.EmailAccountRepository;
 import com.coliving.platform.user.repository.UserRepository;
 import com.coliving.platform.security.entity.CustomUserDetails;
 import lombok.NonNull;
@@ -16,19 +18,15 @@ import org.springframework.transaction.annotation.Transactional;
 public class CustomUserDetailsService  implements UserDetailsService {
 
     private final UserRepository userRepository;
+    private final EmailAccountRepository emailAccountRepository;
 
     @Override
     @Transactional(readOnly = true)
     public @NonNull UserDetails loadUserByUsername(String loginId) throws UsernameNotFoundException {
-        UserEntity user = userRepository.findByEmail(loginId)
+        UserEmailAccountEntity account = emailAccountRepository.findByEmail(loginId)
                 .orElseThrow(() -> new UsernameNotFoundException("이메일 또는 비밀번호가 올바르지 않습니다."));
 
-        // Or 아이디 혹은 이메일로 로그인
-//        UserEntity user = userRepository.findByLoginId(loginId)
-//                .or(() -> userRepository.findByEmail(loginId))
-//                .orElseThrow(() -> new UsernameNotFoundException("아이디 또는 비밀번호가 올바르지 않습니다."));
-
-        return new CustomUserDetails(user);
+        return new CustomUserDetails(account.getUser(), account.getPassword());
     }
 
     @Transactional(readOnly = true)
@@ -41,7 +39,10 @@ public class CustomUserDetailsService  implements UserDetailsService {
         }
         UserEntity user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("아이디 혹은 비밀번호가 틀렸습니다."));
+        String password = emailAccountRepository.findById(userId)
+                .map(UserEmailAccountEntity::getPassword)
+                .orElse(null);
 
-        return new CustomUserDetails(user);
+        return new CustomUserDetails(user, password);
     }
 }

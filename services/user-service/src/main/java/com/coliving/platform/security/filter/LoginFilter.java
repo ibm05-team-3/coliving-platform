@@ -19,12 +19,10 @@ import java.io.IOException;
 
 public class LoginFilter extends AbstractAuthenticationProcessingFilter {
 
-    public static final String LOGIN_FILTER_URL = "/user/login";
-
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public LoginFilter(AuthenticationManager authenticationManager) {
-        super(PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, LOGIN_FILTER_URL),
+    public LoginFilter(AuthenticationManager authenticationManager, String loginUrl) {
+        super(PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.POST, loginUrl),
                 authenticationManager);
     }
 

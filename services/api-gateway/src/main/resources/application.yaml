@@ -21,11 +21,6 @@ spring:
                 - StripPrefix=1
               uri: lb://user-service
 
-            - id: user-oauth
-              predicates:
-                - Path=/login/oauth2/**
-              uri: lb://user-service
-
 auth:
   access-token-issuer: user-service
   access-token-key-id: es256-2026

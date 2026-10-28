@@ -1,7 +1,9 @@
 package com.coliving.platform.security.filter;
 
 import org.jspecify.annotations.NullMarked;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.http.server.reactive.ServerHttpRequestDecorator;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.web.server.ServerWebExchange;
@@ -12,7 +14,7 @@ import reactor.core.publisher.Mono;
 @NullMarked
 public class UserIdHeaderWebFilter implements WebFilter {
 
-    public static final String SUBJECT_HEADER = "X-User-Id";
+    public static final String SUBJECT_HEADER = "X-User";
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
@@ -29,18 +31,27 @@ public class UserIdHeaderWebFilter implements WebFilter {
     }
 
     private ServerWebExchange withUserId(ServerWebExchange exchange, String userId) {
-        return exchange.mutate()
-                .request(builder -> builder.headers(headers -> {
-                    headers.remove(SUBJECT_HEADER);
-                    headers.set(SUBJECT_HEADER, userId);
-                }))
-                .build();
+        HttpHeaders headers = HttpHeaders.copyOf(exchange.getRequest().getHeaders());
+        headers.set(SUBJECT_HEADER, userId);
+        return withHeaders(exchange, headers);
     }
 
     private ServerWebExchange withoutUserId(ServerWebExchange exchange) {
-        ServerHttpRequest request = exchange.getRequest().mutate()
-                .headers(headers -> headers.remove(SUBJECT_HEADER))
-                .build();
+        if (!exchange.getRequest().getHeaders().containsHeader(SUBJECT_HEADER)) {
+            return exchange;
+        }
+        HttpHeaders headers = HttpHeaders.copyOf(exchange.getRequest().getHeaders());
+        headers.remove(SUBJECT_HEADER);
+        return withHeaders(exchange, headers);
+    }
+
+    private ServerWebExchange withHeaders(ServerWebExchange exchange, HttpHeaders headers) {
+        ServerHttpRequest request = new ServerHttpRequestDecorator(exchange.getRequest()) {
+            @Override
+            public HttpHeaders getHeaders() {
+                return headers;
+            }
+        };
         return exchange.mutate().request(request).build();
     }
 }
