@@ -5,13 +5,197 @@ import { createBlock, createReport } from "../api"
 import type { ReportReason, ReportSourceType, ReportTargetType } from "../types"
 import { Button, Icon } from "."
 
-type Props = { sourceType: ReportSourceType; sourceId: number; targetType: ReportTargetType; targetId: string; targetName: string; targetUserId: number; onClose: () => void; onReported: (blocked: boolean) => void }
+type Props = {
+  sourceType: ReportSourceType;
+  sourceId: number;
+  targetType: ReportTargetType;
+  targetId: string;
+  targetName: string;
+  targetUserId: number;
+  onClose: () => void;
+  onReported: (blocked: boolean) => void
+}
 export function ReportModal({ sourceType, sourceId, targetType, targetId, targetName, targetUserId, onClose, onReported }: Props) {
   const { t } = useTranslation("community")
-  const [reason, setReason] = useState<ReportReason | null>(null); const [detail, setDetail] = useState(""); const [complete, setComplete] = useState(false); const [error, setError] = useState(""); const [submitting, setSubmitting] = useState(false)
+  const [reason, setReason] = useState<ReportReason | null>(null);
+  const [detail, setDetail] = useState("");
+  const [complete, setComplete] = useState(false);
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false)
   const valid = Boolean(reason) && (reason !== "ETC" || Boolean(detail.trim()))
-  const submit = async (event: FormEvent) => { event.preventDefault(); if (!reason || !valid || submitting) return; setSubmitting(true); setError(""); try { await createReport({ sourceType, sourceId, targetType, targetId, reasonType: reason, reasonDetail: detail.trim() || null }); setComplete(true) } catch (caught) { const message = caught instanceof Error ? caught.message : ""; setError(message.includes("ALREADY_REPORTED") ? t("report.duplicate") : t("report.failed")) } finally { setSubmitting(false) } }
-  const block = async () => { setSubmitting(true); setError(""); try { await createBlock({ blockedUserId: targetUserId }); onReported(true) } catch (caught) { const message = caught instanceof Error ? caught.message : ""; if (message.includes("ALREADY_BLOCKED")) onReported(true); else setError(t("report.actionFailed")) } finally { setSubmitting(false) } }
-  const reasons = ["ABUSE", "HARASSMENT", "PRIVACY", "SPAM", "INAPPROPRIATE", "HOUSE_RULE", "ETC"] as ReportReason[]
-  return createPortal(<div className="fixed inset-0 z-50 flex items-center justify-center bg-text/40 p-4" onMouseDown={onClose}><form role="dialog" aria-modal="true" onSubmit={submit} onMouseDown={(event) => event.stopPropagation()} className="max-h-[92vh] w-full max-w-xl overflow-y-auto rounded-lg border border-main/15 bg-white p-6"><header className="mb-5 flex items-start justify-between"><div><p className="text-xs font-bold tracking-[0.14em] text-accent">COMMUNITY SAFETY</p><h2 className="mt-1 text-xl font-semibold text-main">{t(complete ? "report.completeTitle" : "report.title")}</h2></div><button type="button" aria-label={t("report.closeLabel")} onClick={onClose} className="rounded-lg p-2 text-text/70 focus-visible:outline-2 focus-visible:outline-accent"><Icon name="close" /></button></header>{complete ? <div className="py-8 text-center"><span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-main/10 text-main"><Icon name="flag" size={24} /></span><strong className="mt-4 block text-text">{t("report.review")}</strong><p className="mt-4 text-sm text-text">{t("report.askBlock")}</p><small className="mt-1 block text-text/70">{t("report.blockGuide")}</small>{error && <p className="mt-3 text-sm font-semibold text-accent">{error}</p>}</div> : <div><div className="rounded-lg bg-background p-4"><span className="text-xs text-text/70">{t("report.target")}</span><strong className="mt-1 block text-sm text-text">{t(targetType === "USER" ? "report.targetUser" : "report.targetContent", { name: targetName, type: t(`common.reportTargets.${targetType}`) })}</strong></div><fieldset className="mt-5"><legend className="mb-3 text-sm font-semibold text-text">{t("report.reason")}</legend><div className="grid grid-cols-2 gap-2">{reasons.map((value) => <label key={value} className={`cursor-pointer rounded-lg border p-3 text-sm ${reason === value ? "border-main bg-main/10 text-main" : "border-main/15 text-text"}`}><input type="radio" className="mr-2 accent-main" checked={reason === value} onChange={() => setReason(value)} />{t(`common.reportReasons.${value}`)}</label>)}</div></fieldset><label className="mt-5 block text-sm font-semibold text-text">{t("report.detail")} · {t(reason === "ETC" ? "common.required" : "common.optional")}<textarea maxLength={500} value={detail} onChange={(event) => setDetail(event.target.value)} placeholder={t("report.detailPlaceholder")} className="mt-2 min-h-24 w-full resize-y rounded-lg border border-main/15 bg-white p-3 text-sm focus-visible:outline-2 focus-visible:outline-accent" /><small className="block text-right font-normal text-text/70">{detail.length}/500</small></label><p className="mt-4 flex items-center gap-2 rounded-lg bg-background p-3 text-xs text-text/70"><Icon name="lock" size={14} />{t("report.anonymous")}</p>{error && <p className="mt-3 text-sm font-semibold text-accent">{error}</p>}</div>}<footer className="mt-6 flex justify-end gap-2">{complete ? <><Button variant="secondary" onClick={() => onReported(false)}>{t("common.close")}</Button><Button disabled={submitting} onClick={() => void block()}>{submitting ? t("common.processing") : t("blockModal.block")}</Button></> : <><Button variant="secondary" onClick={onClose}>{t("common.cancel")}</Button><Button type="submit" disabled={!valid || submitting}>{submitting ? t("report.submitting") : t("report.title")}</Button></>}</footer></form></div>, document.body)
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!reason || !valid || submitting) return;
+    setSubmitting(true);
+    setError("");
+    try {
+      await createReport({
+        sourceType,
+        sourceId,
+        targetType,
+        targetId,
+        reasonType: reason,
+        reasonDetail: detail.trim() || null
+      });
+      setComplete(true)
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : "";
+      setError(message.includes("ALREADY_REPORTED") ? t("report.duplicate") : t("report.failed"))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+  const handleBlock = async () => {
+    setSubmitting(true);
+    setError("");
+    try {
+      await createBlock({ blockedUserId: targetUserId });
+      onReported(true)
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : "";
+      if (message.includes("ALREADY_BLOCKED")) onReported(true); else setError(t("report.actionFailed"))
+    } finally {
+      setSubmitting(false)
+    }
+  }
+  const reasons = [
+    "ABUSE",
+    "HARASSMENT",
+    "PRIVACY",
+    "SPAM",
+    "INAPPROPRIATE",
+    "HOUSE_RULE",
+    "ETC"
+  ] as ReportReason[]
+  return createPortal(<div
+    className="fixed inset-0 z-50 flex items-center justify-center bg-text/40 p-4"
+    onMouseDown={onClose}
+  >
+    <form
+      role="dialog"
+      aria-modal="true"
+      onSubmit={handleSubmit}
+      onMouseDown={(event) => event.stopPropagation()}
+      className="max-h-[92vh] w-full max-w-xl overflow-y-auto rounded-lg border border-main/15 bg-white p-6"
+    >
+      <header className="mb-5 flex items-start justify-between">
+        <div>
+          <p className="text-xs font-bold tracking-[0.14em] text-accent">COMMUNITY SAFETY</p>
+          <h2 className="mt-1 text-xl font-semibold text-main">
+            {t(complete ? "report.completeTitle" : "report.title")}
+          </h2>
+        </div>
+        <button
+          type="button"
+          aria-label={t("report.closeLabel")}
+          onClick={onClose}
+          className="rounded-lg p-2 text-text/70 focus-visible:outline-2 focus-visible:outline-accent"
+        >
+          <Icon name="close" />
+        </button>
+      </header>
+      {complete ? <div className="py-8 text-center">
+        <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-main/10 text-main">
+          <Icon
+            name="flag"
+            size={24}
+          />
+        </span>
+        <strong className="mt-4 block text-text">
+          {t("report.review")}
+        </strong>
+        <p className="mt-4 text-sm text-text">
+          {t("report.askBlock")}
+        </p>
+        <small className="mt-1 block text-text/70">
+          {t("report.blockGuide")}
+        </small>
+        {error && <p className="mt-3 text-sm font-semibold text-accent">
+          {error}
+        </p>}
+      </div> : <div>
+        <div className="rounded-lg bg-background p-4">
+          <span className="text-xs text-text/70">
+            {t("report.target")}
+          </span>
+          <strong className="mt-1 block text-sm text-text">
+            {t(targetType === "USER" ? "report.targetUser" : "report.targetContent", { name: targetName, type: t(`common.reportTargets.${targetType}`) })}
+          </strong>
+        </div>
+        <fieldset className="mt-5">
+          <legend className="mb-3 text-sm font-semibold text-text">
+            {t("report.reason")}
+          </legend>
+          <div className="grid grid-cols-2 gap-2">
+            {reasons.map((value) => <label
+              key={value}
+              className={`cursor-pointer rounded-lg border p-3 text-sm ${reason === value ? "border-main bg-main/10 text-main" : "border-main/15 text-text"}`}
+            >
+              <input
+                type="radio"
+                className="mr-2 accent-main"
+                checked={reason === value}
+                onChange={() => setReason(value)}
+              />
+              {t(`common.reportReasons.${value}`)}
+            </label>)}
+          </div>
+        </fieldset>
+        <label className="mt-5 block text-sm font-semibold text-text">
+          {t("report.detail")}
+          ·
+          {t(reason === "ETC" ? "common.required" : "common.optional")}
+          <textarea
+            maxLength={500}
+            value={detail}
+            onChange={(event) => setDetail(event.target.value)}
+            placeholder={t("report.detailPlaceholder")}
+            className="mt-2 min-h-24 w-full resize-y rounded-lg border border-main/15 bg-white p-3 text-sm focus-visible:outline-2 focus-visible:outline-accent"
+          />
+          <small className="block text-right font-normal text-text/70">
+            {detail.length}
+            /500</small>
+        </label>
+        <p className="mt-4 flex items-center gap-2 rounded-lg bg-background p-3 text-xs text-text/70">
+          <Icon
+            name="lock"
+            size={14}
+          />
+          {t("report.anonymous")}
+        </p>
+        {error && <p className="mt-3 text-sm font-semibold text-accent">
+          {error}
+        </p>}
+      </div>}
+      <footer className="mt-6 flex justify-end gap-2">
+        {complete ? <>
+          <Button
+            variant="secondary"
+            onClick={() => onReported(false)}
+          >
+            {t("common.close")}
+          </Button>
+          <Button
+            disabled={submitting}
+            onClick={() => void handleBlock()}
+          >
+            {submitting ? t("common.processing") : t("blockModal.block")}
+          </Button>
+        </> : <>
+          <Button
+            variant="secondary"
+            onClick={onClose}
+          >
+            {t("common.cancel")}
+          </Button>
+          <Button
+            type="submit"
+            disabled={!valid || submitting}
+          >
+            {submitting ? t("report.submitting") : t("report.title")}
+          </Button>
+        </>}
+      </footer>
+    </form>
+  </div>, document.body)
 }
