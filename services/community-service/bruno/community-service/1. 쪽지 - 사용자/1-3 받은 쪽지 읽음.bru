@@ -1,0 +1,17 @@
+meta {
+  name: 1-3 받은 쪽지 읽음
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{baseUrl}}/community-service/notes/read
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{userId}}
+}
+
+

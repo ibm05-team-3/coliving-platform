@@ -1,0 +1,23 @@
+meta {
+  name: 2-1 같은 번호 10분 안에 다시 → 429
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/community-service/guest-inquiries
+  body: json
+  auth: none
+}
+
+
+body:json {
+  {
+    "name": "홍길동",
+    "phone": "010-1234-5678",
+    "email": "gildong@email.com",
+    "content": "다시 문의드려요",
+    "privacyAgreed": true
+  }
+}
+

@@ -1,0 +1,22 @@
+meta {
+  name: 빈 내용 → 400
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/community-service/notes
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{userId}}
+}
+
+body:json {
+  {
+    "content": ""
+  }
+}
+

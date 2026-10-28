@@ -2,11 +2,14 @@
 -- community-service 개발용 스키마 (schema-dev.sql)
 -- 대상: coliving-pgvector 컨테이너 (localhost:5433, postgres / admin)
 -- 1) DBeaver에서 Data Source를 postgres로 두고 아래 한 줄만 먼저 실행
-CREATE DATABASE community_service ENCODING 'UTF8';
+--CREATE DATABASE community_service ENCODING 'UTF8';
 -- 2) Schema를 community_service로 전환한 뒤 "\c community_service;"를 제외한 아래쪽 전체 실행
-\c community_service;
+--\c community_service;
 -- =====================================================
-
+SELECT table_schema, table_name 
+FROM information_schema.tables 
+WHERE table_schema NOT IN ('pg_catalog', 'information_schema')
+ORDER BY table_schema, table_name;
 -- =====================================================
 -- Community Service Schema (오시문)
 -- 쪽지 · 비회원 문의 · 1:1 채팅 · 커뮤니티 게시판 · 알림 · FAQ 봇(RAG, Gemini) · 신고 · 차단 · 제재

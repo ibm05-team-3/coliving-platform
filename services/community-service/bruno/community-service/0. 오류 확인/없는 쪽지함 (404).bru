@@ -1,0 +1,17 @@
+meta {
+  name: 없는 쪽지함 → 404
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/community-service/admin/note-threads/99999
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{adminId}}
+}
+
+
