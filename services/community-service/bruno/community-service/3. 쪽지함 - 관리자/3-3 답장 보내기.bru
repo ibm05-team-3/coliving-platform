@@ -1,0 +1,22 @@
+meta {
+  name: 3-3 답장 보내기 (회원)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/community-service/admin/note-threads/{{memberThreadId}}/notes
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{adminId}}
+}
+
+body:json {
+  {
+    "content": "네, 11월 3일 입주 가능합니다."
+  }
+}
+

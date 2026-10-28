@@ -1,0 +1,17 @@
+meta {
+  name: 3-2 쪽지함 상세 (회원)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/community-service/admin/note-threads/{{memberThreadId}}
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{adminId}}
+}
+
+

@@ -1,4 +1,40 @@
 import type { MySanction } from "../types"
 import { useTranslation } from "react-i18next"
 import { Button, Icon } from "."
-export function SanctionBanner({ sanction }: { sanction: MySanction }) { const { t, i18n } = useTranslation("community"); if (!sanction.active) return null; const release = sanction.sanctionType === "SUSPENSION" || !sanction.endsAt ? t("sanction.untilAdmin") : t("sanction.releaseAt", { date: new Date(sanction.endsAt).toLocaleString(i18n.resolvedLanguage ?? i18n.language, { month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" }) }); return <section className="mb-5 flex flex-col gap-3 rounded-lg border border-main/15 bg-accent/20 p-4 sm:flex-row sm:items-center"><span className="text-main"><Icon name="lock" size={20} /></span><div className="flex-1"><strong className="text-sm text-text">{t("sanction.title", { release })}</strong><p className="mt-1 text-sm text-text/70">{sanction.reason}</p><small className="text-text/70">{t("sanction.available")}</small></div><Button variant="secondary" onClick={() => window.dispatchEvent(new CustomEvent("roomlink:open-chat", { detail: { tab: "notes" } }))}>{t("sanction.contact")}</Button></section> }
+export function SanctionBanner({ sanction }: { sanction: MySanction }) {
+  const { t, i18n } = useTranslation("community");
+  if (!sanction.active) return null;
+  const release = sanction.sanctionType === "SUSPENSION" || !sanction.endsAt ? t("sanction.untilAdmin") : t("sanction.releaseAt", {
+    date: new Date(sanction.endsAt).toLocaleString(i18n.resolvedLanguage ?? i18n.language, {
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit"
+    })
+  });
+  return <section className="mb-5 flex flex-col gap-3 rounded-lg border border-main/15 bg-accent/20 p-4 sm:flex-row sm:items-center">
+    <span className="text-main">
+      <Icon
+        name="lock"
+        size={20}
+      />
+    </span>
+    <div className="flex-1">
+      <strong className="text-sm text-text">
+        {t("sanction.title", { release })}
+      </strong>
+      <p className="mt-1 text-sm text-text/70">
+        {sanction.reason}
+      </p>
+      <small className="text-text/70">
+        {t("sanction.available")}
+      </small>
+    </div>
+    <Button
+      variant="secondary"
+      onClick={() => window.dispatchEvent(new CustomEvent("roomlink:open-chat", { detail: { tab: "notes" } }))}
+    >
+      {t("sanction.contact")}
+    </Button>
+  </section>
+}

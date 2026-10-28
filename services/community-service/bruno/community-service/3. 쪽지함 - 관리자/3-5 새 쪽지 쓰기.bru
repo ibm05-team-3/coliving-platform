@@ -1,0 +1,23 @@
+meta {
+  name: 3-5 새 쪽지 쓰기 (관리자 → 입주자)
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/community-service/admin/notes
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{adminId}}
+}
+
+body:json {
+  {
+    "recipientUserId": {{residentId}},
+    "content": "다음 주 정기 점검 일정 안내드립니다."
+  }
+}
+
