@@ -3,8 +3,10 @@
   <component name="ExternalStorageConfigurationManager" enabled="true" />
   <component name="FrameworkDetectionExcludesConfiguration">
     <file type="web" url="file://$PROJECT_DIR$/services/api-gateway" />
+    <file type="web" url="file://$PROJECT_DIR$/services/community-service" />
     <file type="web" url="file://$PROJECT_DIR$/services/config-server" />
     <file type="web" url="file://$PROJECT_DIR$/services/contract-service" />
+    <file type="web" url="file://$PROJECT_DIR$/services/dashboard-service" />
     <file type="web" url="file://$PROJECT_DIR$/services/eureka-server" />
     <file type="web" url="file://$PROJECT_DIR$/services/user-service" />
   </component>

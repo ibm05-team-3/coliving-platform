@@ -10,6 +10,7 @@ import com.coliving.platform.grpc.user.UserContractInfo;
 import com.coliving.platform.grpc.user.UserServiceGrpc;
 import io.grpc.StatusRuntimeException;
 import org.springframework.stereotype.Service;
+
 /**
  * 계약 서비스 안에서 유저 정보가 필요할 때 거치는 창구 (유저 서비스 gRPC 호출).
  *
