@@ -132,6 +132,49 @@ services:
     networks:
       - coliving-platform
 
+  #prometheus
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    container_name: coliving-prometheus
+    ports:
+      - "9090:9090"
+    configs:
+      - source: prometheus_config
+        target: /etc/prometheus/prometheus.yml
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - coliving-platform
+
+  #grafana
+  grafana:
+    image: grafana/grafana:12.0.0
+    container_name: coliving-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - coliving-platform
+
+configs:
+  #prometheus 설정
+  prometheus_config:
+    content: |
+      global:
+        scrape_interval: 15s
+      scrape_configs:
+        - job_name: spring-services
+          metrics_path: /actuator/prometheus
+          static_configs:
+            - targets: ['host.docker.internal:8085']
+              labels:
+                service: dashboard-service
+
 volumes:
   postgres_data:
   pgvector_data:   # ★ 추가
@@ -141,6 +184,7 @@ volumes:
   zookeeper_data:
   kafka_data:
   elasticsearch_data:
+  grafana_data:
 
 networks:
   coliving-platform:
