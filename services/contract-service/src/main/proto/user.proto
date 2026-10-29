@@ -1,0 +1,36 @@
+// ============================================================
+// 멤버 서비스 ↔ 계약 서비스 gRPC 계약서(인터페이스 정의)
+//
+// ⚠ 이 파일은 멤버 서비스와 계약 서비스가 "똑같은 내용"으로 가지고 있어야 한다.
+//   한쪽만 바꾸면 필드 번호가 어긋나서 값이 엉뚱하게 들어가거나 비어 온다.
+//   → 팀 공용 위치(공용 폴더/저장소)를 정해서 한 곳에서 관리할 것
+//
+// 규칙
+//   - 필드 번호(= 1, = 2 ...)는 한 번 정하면 절대 바꾸거나 재사용하지 않는다
+//   - 필드를 없앨 때는 지우지 말고 reserved로 막는다
+// ============================================================
+syntax = "proto3";
+
+package coliving.user.v1;
+
+option java_multiple_files = true;
+option java_package = "com.coliving.platform.grpc.room";
+option java_outer_classname = "UserProto";
+
+service userService {
+  // 계약 화면, 계약 저장에 필요한 유저 정보 1건 조회
+  //없는 유저면 서버는 Status Not_Found로 응답한다.
+  rpc GetRoomContractInfo (GetUserContractInfoRequest) returns (UserContractInfo);
+}
+message GetUserContractInfoRequest {
+  int64 user_id = 1;
+}
+message UserContractInfo {
+  //식별
+  int64 user_id = 1;
+  //화면 표시
+  string name = 2;
+  string email = 3;
+  string phone = 4;
+  string address = 5;
+}

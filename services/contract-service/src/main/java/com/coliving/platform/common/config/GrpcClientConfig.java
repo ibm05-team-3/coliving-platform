@@ -17,3 +17,9 @@ import org.springframework.grpc.client.ImportGrpcClients;
 @ImportGrpcClients(target = "room", types = RoomServiceGrpc.RoomServiceBlockingStub.class)
 public class GrpcClientConfig {
 }
+
+@Configuration
+@ImportGrpcClients(target = "user", types = UserServiceGrpc.UserServiceBlockingStub.class)
+public class GrpcClinetConfig{
+
+}
