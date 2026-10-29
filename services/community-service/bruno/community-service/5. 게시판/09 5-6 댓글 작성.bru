@@ -1,0 +1,25 @@
+meta {
+  name: 5-6 댓글 작성 (5002 → 5001 글)
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/community-service/posts/{{postId}}/comments
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId2}}
+}
+
+body:json {
+  {
+    "content": "저 갈래요!"
+  }
+}
+
+script:post-response {
+  if (res.status === 201) bru.setEnvVar("commentId", res.body.commentId);
+}

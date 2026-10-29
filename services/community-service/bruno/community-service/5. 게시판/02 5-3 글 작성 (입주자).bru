@@ -1,0 +1,27 @@
+meta {
+  name: 5-3 글 작성 (입주자 5001)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/community-service/posts
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}
+
+body:json {
+  {
+    "category": "FREE",
+    "title": "이번 주말 한강 피크닉 같이 가실 분?",
+    "content": "토요일 오후 3시에 망원 한강공원에서 만나요!"
+  }
+}
+
+script:post-response {
+  if (res.status === 201) bru.setEnvVar("postId", res.body.postId);
+}

@@ -1,5 +1,6 @@
 package com.coliving.platform.common.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.MappedSuperclass;
 import lombok.Getter;
 import org.hibernate.annotations.CreationTimestamp;
@@ -12,8 +13,10 @@ import java.time.LocalDateTime;
 public abstract class BaseTimeEntity {
 
     @CreationTimestamp
-    protected LocalDateTime createdDate;
+    @Column(name = "created_at")
+    protected LocalDateTime createdAt;
 
     @UpdateTimestamp
-    protected LocalDateTime updatedDate;
+    @Column(name = "updated_at")
+    protected LocalDateTime updatedAt;
 }

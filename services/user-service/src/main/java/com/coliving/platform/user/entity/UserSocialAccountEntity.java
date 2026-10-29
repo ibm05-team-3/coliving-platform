@@ -25,6 +25,4 @@ public class UserSocialAccountEntity extends BaseTimeEntity {
 
     @Column(nullable = false)
     private String providerId;
-
-    private String email;
 }

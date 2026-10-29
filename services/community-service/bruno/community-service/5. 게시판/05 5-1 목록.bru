@@ -1,0 +1,15 @@
+meta {
+  name: 5-1 게시글 목록 (입주자 5002)
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/community-service/posts?page=0&size=20
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId2}}
+}

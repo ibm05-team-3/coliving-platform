@@ -1,0 +1,25 @@
+meta {
+  name: 3-1 쪽지함 목록 (미답변)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/community-service/admin/note-threads?status=UNANSWERED&page=0&size=20
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{adminId}}
+}
+
+
+script:post-response {
+  // 목록에서 회원·비회원 쪽지함 ID를 찾아 환경 변수에 저장 (다음 요청에서 사용)
+  const list = res.body.content || [];
+  const member = list.find(t => t.type !== "GUEST");
+  const guest = list.find(t => t.type === "GUEST");
+  if (member) bru.setEnvVar("memberThreadId", member.threadId);
+  if (guest) bru.setEnvVar("guestThreadId", guest.threadId);
+}

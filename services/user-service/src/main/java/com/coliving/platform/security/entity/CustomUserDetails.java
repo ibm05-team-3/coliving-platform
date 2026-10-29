@@ -18,9 +18,9 @@ public class CustomUserDetails implements UserDetails {
     private final boolean enabled;
     private final boolean accountNonLocked;
 
-    public CustomUserDetails(UserEntity entity) {
+    public CustomUserDetails(UserEntity entity, String password) {
         this.sub = String.valueOf(entity.getId());
-        this.password = entity.getPassword();
+        this.password = password;
         this.enabled = entity.isEnabled();
         this.accountNonLocked = entity.isAccountNonLocked();
         this.authorities = toAuthorities(entity.getRoles());
@@ -48,7 +48,7 @@ public class CustomUserDetails implements UserDetails {
         return authorities;
     }
 
-    // 소셜만 가입한 경우 null 가능
+    // 이메일 로그인 계정이 없으면 null
     @Override
     public String getPassword() {
         return password;

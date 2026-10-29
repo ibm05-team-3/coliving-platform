@@ -1,0 +1,15 @@
+meta {
+  name: 5-2 삭제된 글 상세 → 404 POST_NOT_FOUND
+  type: http
+  seq: 20
+}
+
+get {
+  url: {{baseUrl}}/community-service/posts/{{postId}}
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}

@@ -1,0 +1,800 @@
+import { type FormEvent, type ReactNode, useEffect, useMemo, useState } from "react"
+import { useNavigate, useParams } from "react-router"
+import { useTranslation } from "react-i18next"
+import { createCommunityComment, createCommunityPost, deleteCommunityComment, deleteCommunityPost, getCommunityPost, openChatRoom, updateCommunityComment, updateCommunityPost } from "../api"
+import { Avatar, Badge, Button, Icon } from "../components"
+import { BlockConfirmModal } from "../components/BlockConfirmModal"
+import { CommunityRestricted } from "../components/CommunityRestricted"
+import { ReportModal } from "../components/ReportModal"
+import { SanctionBanner } from "../components/SanctionBanner"
+import { useMySanction } from "../components/useMySanction"
+import { useCurrentUser } from "../currentUser"
+import type { CommunityComment, CommunityPostDetail, CommunityPostRequest, CommunityReply, ReportSourceType, ReportTargetType } from "../types"
+
+export type PostEditorMode = "view" | "create" | "edit"
+type ReportSelection = {
+  sourceType: ReportSourceType;
+  sourceId: number;
+  targetType: ReportTargetType;
+  targetId: string;
+  targetName: string;
+  targetUserId: number
+}
+type BlockSelection = {
+  userId: number;
+  name: string;
+  from: "post" | "comment"
+}
+const INPUT_CLASS = "w-full rounded-lg border border-main/15 bg-white px-3 py-2 text-sm text-text focus-visible:outline-2 focus-visible:outline-accent disabled:cursor-not-allowed disabled:bg-background"
+const dateTime = (value: string, locale: string) => new Date(value).toLocaleString(locale, {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+  hour: "numeric",
+  minute: "2-digit"
+})
+
+export default function PostEditorView({ mode, title }: { mode: PostEditorMode; title: string }) {
+  const { t, i18n } = useTranslation("community");
+  const user = useCurrentUser();
+  const navigate = useNavigate();
+  const { postId } = useParams();
+  const sanction = useMySanction();
+  const numericPostId = Number(postId)
+  const [post, setPost] = useState<CommunityPostDetail | null>(null);
+  const [form, setForm] = useState<CommunityPostRequest>({
+    category: "FREE",
+    title: "",
+    content: ""
+  });
+  const [commentText, setCommentText] = useState("");
+  const [replyTo, setReplyTo] = useState<number | null>(null);
+  const [replyText, setReplyText] = useState("");
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingText, setEditingText] = useState("");
+  const [profile, setProfile] = useState<string | null>(null);
+  const [confirm, setConfirm] = useState<"leave" | "delete" | null>(null);
+  const [menu, setMenu] = useState(false);
+  const [reportTarget, setReportTarget] = useState<ReportSelection | null>(null);
+  const [blockTarget, setBlockTarget] = useState<BlockSelection | null>(null);
+  const [toast, setToast] = useState("")
+  useEffect(() => {
+    document.title = mode === "create" ? t("post.createTitle", { defaultValue: title }) : mode === "edit" ? t("post.editTitle", { defaultValue: title }) : post?.title ?? title
+  }, [
+    i18n.language,
+    mode,
+    post?.title,
+    t,
+    title
+  ])
+  useEffect(() => {
+    if (user.role !== "RESIDENT" || mode === "create" || !Number.isFinite(numericPostId)) return;
+    void getCommunityPost(numericPostId).then((detail) => {
+      if (!detail) return;
+      setPost(detail);
+      if (mode === "edit" && detail.category !== "NOTICE") setForm({
+        category: detail.category,
+        title: detail.title,
+        content: detail.content
+      })
+    })
+  }, [
+    mode,
+    numericPostId,
+    user.role
+  ])
+  const dirty = useMemo(() => mode === "create" ? Boolean(form.title.trim() || form.content.trim() || form.category !== "FREE") : mode === "edit" ? Boolean(post && (form.category !== post.category || form.title !== post.title || form.content !== post.content)) : false, [
+    form,
+    mode,
+    post
+  ])
+  useEffect(() => {
+    if (!dirty) return;
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload)
+  }, [dirty])
+  if (user.role !== "RESIDENT") return <CommunityRestricted />
+  const showToast = (message: string) => {
+    setToast(message);
+    window.setTimeout(() => setToast(""), 2400)
+  }
+  const handleLeave = () => {
+    if (dirty) setConfirm("leave"); else navigate(mode === "edit" ? `/community/posts/${numericPostId}` : "/community")
+  }
+  const refresh = async () => {
+    if (!post) return;
+    const value = await getCommunityPost(post.postId);
+    if (value) setPost(value)
+  }
+  const handleAfterBlock = async (userId: number, from: "post" | "comment") => {
+    void userId;
+    showToast(t("post.blockedToast"));
+    if (from === "post") window.setTimeout(() => navigate("/community"), 700); else await refresh()
+  }
+  const handleSubmitPost = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!form.title.trim() || !form.content.trim() || sanction.active) return;
+    if (mode === "create") {
+      const result = await createCommunityPost(form);
+      navigate(`/community/posts/${result.postId}`)
+    } else {
+      await updateCommunityPost(numericPostId, form);
+      navigate(`/community/posts/${numericPostId}`)
+    }
+  }
+  const handleStartChat = async (authorId: number) => {
+    if (sanction.active) return;
+    try {
+      const room = await openChatRoom({
+        partnerUserId: authorId,
+        sourceType: "POST",
+        sourceId: numericPostId || 0
+      });
+      setProfile(null);
+      window.dispatchEvent(new CustomEvent("roomlink:open-chat", { detail: { tab: "chat", roomId: room.roomId } }))
+    } catch (caught) {
+      if (caught instanceof Error && caught.message.includes("CHAT_NOT_AVAILABLE")) showToast(t("post.chatUnavailable"))
+    }
+  }
+  const handleSubmitComment = async (event: FormEvent) => {
+    event.preventDefault();
+    const content = commentText.trim();
+    if (!post || !content || sanction.active) return;
+    const result = await createCommunityComment(post.postId, { content, parentCommentId: null });
+    const comment: CommunityComment = {
+      commentId: result.commentId,
+      authorId: user.userId,
+      authorName: user.name,
+      authorRoomNumber: user.roomNumber,
+      content,
+      status: "ACTIVE",
+      blocked: false,
+      isMine: true,
+      createdAt: result.createdAt,
+      replies: []
+    };
+    setPost({ ...post, comments: [...post.comments, comment] });
+    setCommentText("")
+  }
+  const handleSubmitReply = async (commentId: number) => {
+    const content = replyText.trim();
+    if (!post || !content || sanction.active) return;
+    const result = await createCommunityComment(post.postId, { content, parentCommentId: commentId });
+    const reply: CommunityReply = {
+      commentId: result.commentId,
+      authorId: user.userId,
+      authorName: user.name,
+      authorRoomNumber: user.roomNumber,
+      content,
+      status: "ACTIVE",
+      blocked: false,
+      isMine: true,
+      createdAt: result.createdAt
+    };
+    setPost({
+      ...post,
+      comments: post.comments.map((comment) => comment.commentId === commentId ? { ...comment, replies: [...comment.replies, reply] } : comment)
+    });
+    setReplyText("");
+    setReplyTo(null)
+  }
+  const updateCommentState = (id: number, updater: (item: CommunityComment | CommunityReply) => CommunityComment | CommunityReply) => {
+    if (!post) return;
+    setPost({
+      ...post,
+      comments: post.comments.map((comment) => comment.commentId === id ? updater(comment) as CommunityComment : {
+        ...comment,
+        replies: comment.replies.map((reply) => reply.commentId === id ? updater(reply) as CommunityReply : reply)
+      })
+    })
+  }
+  const handleSaveComment = async () => {
+    if (!editingId || !editingText.trim()) return;
+    await updateCommunityComment(editingId, { content: editingText.trim() });
+    updateCommentState(editingId, (item) => ({ ...item, content: editingText.trim() }));
+    setEditingId(null)
+  }
+  const handleRemoveComment = async (id: number) => {
+    await deleteCommunityComment(id);
+    updateCommentState(id, (item) => ({
+      ...item,
+      authorId: null,
+      authorName: null,
+      authorRoomNumber: null,
+      content: null,
+      status: "DELETED",
+      isMine: false
+    }))
+  }
+  const handleRequestBlock = (userId: number, name: string, from: "post" | "comment") => {
+    setProfile(null);
+    setMenu(false);
+    setBlockTarget({
+      userId,
+      name,
+      from
+    })
+  }
+  const commentBody = (item: CommunityComment | CommunityReply, reply: boolean): ReactNode => {
+    if (item.status === "DELETED") return <p className="text-sm text-text/70">
+      {t("post.deletedComment")}
+    </p>
+    if (item.blocked) return <div className="flex items-center gap-2 rounded-lg bg-background p-3 text-sm text-text/70">
+      <Icon
+        name="lock"
+        size={13}
+      />
+      {t("post.blockedComment")}
+    </div>
+    if (editingId === item.commentId) return <div className="flex gap-2">
+      <input
+        className={INPUT_CLASS}
+        value={editingText}
+        onChange={(event) => setEditingText(event.target.value)}
+      />
+      <Button
+        className="min-h-8 px-3"
+        onClick={() => void handleSaveComment()}
+      >
+        {t("common.save")}
+      </Button>
+      <Button
+        className="min-h-8 px-3"
+        variant="ghost"
+        onClick={() => setEditingId(null)}
+      >
+        {t("common.cancel")}
+      </Button>
+    </div>
+    return <>
+      <p className="text-sm leading-6 text-text">
+        {item.content}
+      </p>
+      <div className="mt-2 flex gap-3 text-xs font-semibold text-text/70">
+        {!reply && <button
+          disabled={sanction.active}
+          onClick={() => {
+            setReplyTo(replyTo === item.commentId ? null : item.commentId);
+            setReplyText("")
+          }}
+          className="focus-visible:outline-2 focus-visible:outline-accent"
+        >
+          {t("post.reply")}
+        </button>}
+        {!item.isMine && item.authorId !== null && <button
+          onClick={() => setReportTarget({
+            sourceType: "POST",
+            sourceId: post!.postId,
+            targetType: "COMMENT",
+            targetId: String(item.commentId),
+            targetName: item.authorName ?? t("common.user"),
+            targetUserId: item.authorId!
+          })}
+          className="focus-visible:outline-2 focus-visible:outline-accent"
+        >
+          {t("post.reportButton")}
+        </button>}
+        {item.isMine && <>
+          <button
+            disabled={sanction.active}
+            onClick={() => {
+              setEditingId(item.commentId);
+              setEditingText(item.content ?? "")
+            }}
+          >
+            {t("common.edit")}
+          </button>
+          <button onClick={() => void handleRemoveComment(item.commentId)}>
+            {t("common.delete")}
+          </button>
+        </>}
+      </div>
+    </>
+  }
+  if (mode !== "create" && !post) return <main className="px-4 py-6 sm:px-8 md:px-12">
+    <div className="rounded-lg border border-main/15 bg-white p-12 text-center text-text/70">
+      {t("post.loading")}
+    </div>
+  </main>
+  if (mode === "view" && post?.blocked) return <main className="px-4 py-6 sm:px-8 md:px-12">
+    <section className="flex min-h-72 flex-col items-center justify-center rounded-lg border border-main/15 bg-white p-8 text-center">
+      <span className="rounded-full bg-main/10 p-4 text-main">
+        <Icon
+          name="lock"
+          size={26}
+        />
+      </span>
+      <h1 className="mt-4 text-2xl font-semibold text-main sm:text-3xl">
+        {t("post.blockedTitle")}
+      </h1>
+      <p className="mt-2 text-sm text-text/70">
+        {t("post.blockedDescription")}
+      </p>
+      <Button
+        className="mt-5"
+        onClick={() => navigate("/community")}
+      >
+        {t("post.toList")}
+      </Button>
+    </section>
+  </main>
+  if (mode === "create" || mode === "edit") return <main className="px-4 py-6 sm:px-8 md:px-12">
+    <Back onClick={handleLeave}>
+      {t("post.back")}
+    </Back>
+    <SanctionBanner sanction={sanction} />
+    <form
+      onSubmit={handleSubmitPost}
+      className="mx-auto max-w-3xl rounded-lg border border-main/15 bg-white p-5 sm:p-8"
+    >
+      <p className="text-xs font-bold tracking-[0.16em] text-accent">
+        {t("common.eyebrow")}
+      </p>
+      <h1 className="mt-2 text-2xl font-semibold text-main sm:text-3xl">
+        {t(mode === "create" ? "post.createTitle" : "post.editTitle")}
+      </h1>
+      <p className="mt-2 text-sm text-text/70">
+        {t("post.editorDescription", { building: user.buildingName })}
+      </p>
+      <div className="mt-7 space-y-5">
+        <FormField label={t("post.category")}>
+          <select
+            disabled={sanction.active}
+            value={form.category}
+            onChange={(event) => setForm({ ...form, category: event.target.value as CommunityPostRequest["category"] })}
+            className={INPUT_CLASS}
+          >
+            <option value="FREE">
+              {t("common.categories.FREE")}
+            </option>
+            <option value="SHARE">
+              {t("common.categories.SHARE")}
+            </option>
+            <option value="MEETUP">
+              {t("common.categories.MEETUP")}
+            </option>
+          </select>
+        </FormField>
+        <FormField label={t("post.titleLabel")}>
+          <input
+            disabled={sanction.active}
+            value={form.title}
+            onChange={(event) => setForm({ ...form, title: event.target.value })}
+            className={INPUT_CLASS}
+            placeholder={t(sanction.active ? "post.restrictedPlaceholder" : "post.titlePlaceholder")}
+          />
+        </FormField>
+        <FormField label={t("post.contentLabel")}>
+          <textarea
+            disabled={sanction.active}
+            value={form.content}
+            onChange={(event) => setForm({ ...form, content: event.target.value })}
+            className={`${INPUT_CLASS} min-h-64 resize-y`}
+            placeholder={t(sanction.active ? "post.restrictedPlaceholder" : "post.contentPlaceholder")}
+          />
+        </FormField>
+      </div>
+      <footer className="mt-6 flex justify-end gap-2">
+        <Button
+          variant="secondary"
+          onClick={handleLeave}
+        >
+          {t("common.cancel")}
+        </Button>
+        <Button
+          type="submit"
+          disabled={sanction.active || !form.title.trim() || !form.content.trim()}
+        >
+          {t(mode === "create" ? "common.submit" : "post.completeEdit")}
+        </Button>
+      </footer>
+    </form>
+    {confirm === "leave" && <ConfirmModal
+      title={t("post.leaveTitle")}
+      description={t("post.leaveDescription")}
+      confirmLabel={t("post.leave")}
+      onCancel={() => setConfirm(null)}
+      onConfirm={() => navigate(mode === "edit" ? `/community/posts/${numericPostId}` : "/community")}
+    />}
+  </main>
+  return <main
+    className="px-4 py-6 sm:px-8 md:px-12"
+    onClick={() => {
+      setProfile(null);
+      setMenu(false)
+    }}
+  >
+    <Back onClick={() => navigate("/community")}>
+      {t("post.toList")}
+    </Back>
+    <SanctionBanner sanction={sanction} />
+    <article
+      className="rounded-lg border border-main/15 bg-white p-5 sm:p-8"
+      onClick={(event) => event.stopPropagation()}
+    >
+      <header className="flex items-start justify-between gap-4">
+        <div>
+          <Badge type={post!.category === "NOTICE" ? "accent" : "info"}>
+            {t(`common.categories.${post!.category}`)}
+          </Badge>
+          <h1 className="mt-3 text-2xl font-semibold text-main sm:text-3xl">
+            {post!.title}
+          </h1>
+        </div>
+        {post!.isMine ? <div className="flex gap-2">
+          <Button
+            variant="ghost"
+            icon="edit"
+            disabled={sanction.active}
+            onClick={() => navigate(`/community/posts/${post!.postId}/edit`)}
+          >
+            {t("common.edit")}
+          </Button>
+          <Button
+            variant="ghost"
+            icon="trash"
+            onClick={() => setConfirm("delete")}
+          >
+            {t("common.delete")}
+          </Button>
+        </div> : post!.category !== "NOTICE" && post!.authorId !== null && <div className="relative">
+          <button
+            aria-label={t("post.postMenu")}
+            onClick={() => setMenu(!menu)}
+            className="rounded-lg p-2 text-text/70 focus-visible:outline-2 focus-visible:outline-accent"
+          >
+            <Icon name="more" />
+          </button>
+          {menu && <div className="absolute top-full right-0 z-10 mt-1 w-44 rounded-lg border border-main/15 bg-white p-1">
+            <button
+              onClick={() => setReportTarget({
+                sourceType: "POST",
+                sourceId: post!.postId,
+                targetType: "POST",
+                targetId: String(post!.postId),
+                targetName: post!.authorName,
+                targetUserId: post!.authorId!
+              })}
+              className="flex w-full items-center gap-2 rounded px-3 py-2 text-sm hover:bg-background"
+            >
+              <Icon
+                name="flag"
+                size={13}
+              />
+              {t("post.reportPost")}
+            </button>
+            <button
+              onClick={() => handleRequestBlock(post!.authorId!, post!.authorName, "post")}
+              className="flex w-full items-center gap-2 rounded px-3 py-2 text-sm hover:bg-background"
+            >
+              <Icon
+                name="lock"
+                size={13}
+              />
+              {t("post.blockAuthor")}
+            </button>
+          </div>}
+        </div>}
+      </header>
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-b border-main/15 pb-5">
+        <Author
+          authorId={post!.authorId}
+          name={post!.authorName}
+          room={post!.authorRoomNumber}
+          popupKey="post"
+          open={profile}
+          onOpenChange={setProfile}
+          onChat={handleStartChat}
+          onBlock={(id, name) => handleRequestBlock(id, name, "post")}
+          disabled={sanction.active}
+          currentUserId={user.userId}
+        />
+        <span className="flex items-center gap-1 text-xs text-text/70">
+          {dateTime(post!.createdAt, i18n.resolvedLanguage ?? i18n.language)}
+          ·
+          <Icon
+            name="eye"
+            size={13}
+          />
+          {t("post.views", { count: post!.viewCount })}
+        </span>
+      </div>
+      <div className="min-h-44 py-8 text-sm leading-7 text-text">
+        {post!.content}
+      </div>
+    </article>
+
+
+    <section
+      className="mt-5 rounded-lg border border-main/15 bg-white p-5 sm:p-8"
+      onClick={(event) => event.stopPropagation()}
+    >
+      <h2 className="font-semibold text-main">
+        {t("post.commentCount", { count: post!.comments.reduce((count, item) => count + 1 + item.replies.length, 0) })}
+      </h2>
+      <form
+        onSubmit={handleSubmitComment}
+        className="mt-4 flex gap-3"
+      >
+        <Avatar
+          name={user.name}
+          size="sm"
+        />
+        <textarea
+          disabled={sanction.active}
+          value={commentText}
+          onChange={(event) => setCommentText(event.target.value)}
+          className={`${INPUT_CLASS} min-h-20 resize-y`}
+          placeholder={t(sanction.active ? "post.restrictedPlaceholder" : "post.commentPlaceholder")}
+        />
+        <Button
+          type="submit"
+          disabled={sanction.active || !commentText.trim()}
+        >
+          {t("common.submit")}
+        </Button>
+      </form>
+      <div className="mt-6 divide-y divide-main/15">
+        {post!.comments.map((comment) => <div
+          key={comment.commentId}
+          className="py-5"
+        >
+          <Comment
+            item={comment}
+            body={commentBody(comment, false)}
+            profile={profile}
+            onProfileChange={setProfile}
+            onChat={handleStartChat}
+            onBlock={(id, name) => handleRequestBlock(id, name, "comment")}
+            disabled={sanction.active}
+            currentUserId={user.userId}
+            locale={i18n.resolvedLanguage ?? i18n.language}
+          />
+          {replyTo === comment.commentId && <div className="mt-3 flex gap-2 pl-8">
+            <Icon
+              name="arrowRight"
+              size={14}
+            />
+            <input
+              className={INPUT_CLASS}
+              disabled={sanction.active}
+              value={replyText}
+              onChange={(event) => setReplyText(event.target.value)}
+              placeholder={t(sanction.active ? "post.restrictedPlaceholder" : "post.replyPlaceholder")}
+              autoFocus
+            />
+            <Button
+              disabled={sanction.active || !replyText.trim()}
+              onClick={() => void handleSubmitReply(comment.commentId)}
+            >
+              {t("common.submit")}
+            </Button>
+          </div>}
+          {comment.replies.map((reply) => <div
+            key={reply.commentId}
+            className="mt-4 ml-8 rounded-lg bg-background p-4"
+          >
+            <Comment
+              item={reply}
+              body={commentBody(reply, true)}
+              profile={profile}
+              onProfileChange={setProfile}
+              onChat={handleStartChat}
+              onBlock={(id, name) => handleRequestBlock(id, name, "comment")}
+              disabled={sanction.active}
+              currentUserId={user.userId}
+              locale={i18n.resolvedLanguage ?? i18n.language}
+            />
+          </div>)}
+        </div>)}
+      </div>
+    </section>
+
+
+    {confirm === "delete" && <ConfirmModal
+      danger
+      title={t("post.deleteTitle")}
+      description={t("post.deleteDescription")}
+      confirmLabel={t("common.delete")}
+      onCancel={() => setConfirm(null)}
+      onConfirm={async () => {
+        await deleteCommunityPost(post!.postId);
+        navigate("/community")
+      }}
+    />}
+    {reportTarget && <ReportModal
+      {...reportTarget}
+      onClose={() => setReportTarget(null)}
+      onReported={(blocked) => {
+        const value = reportTarget;
+        setReportTarget(null);
+        if (blocked) void handleAfterBlock(value.targetUserId, value.targetType === "POST" ? "post" : "comment")
+      }}
+    />}
+    {blockTarget && <BlockConfirmModal
+      name={blockTarget.name}
+      blockedUserId={blockTarget.userId}
+      onClose={() => setBlockTarget(null)}
+      onBlocked={() => {
+        const value = blockTarget;
+        setBlockTarget(null);
+        void handleAfterBlock(value.userId, value.from)
+      }}
+    />}
+    {toast && <div className="fixed right-6 bottom-20 z-50 rounded-lg bg-main px-5 py-3 text-sm font-semibold text-background">
+      {toast}
+    </div>}
+
+  </main>
+}
+
+function Back({ onClick, children }: { onClick: () => void; children: ReactNode }) {
+  return <button
+    onClick={onClick}
+    className="mb-4 inline-flex items-center gap-1 text-sm font-semibold text-main focus-visible:outline-2 focus-visible:outline-accent"
+  >
+    <Icon
+      name="chevronLeft"
+      size={17}
+    />
+    {children}
+  </button>
+}
+function FormField({ label, children }: { label: string; children: ReactNode }) {
+  return <label className="block text-sm font-semibold text-text">
+    <span className="mb-2 block">
+      {label}
+    </span>
+    {children}
+  </label>
+}
+function ConfirmModal({ title, description, confirmLabel, danger = false, onCancel, onConfirm }: {
+  title: string;
+  description: string;
+  confirmLabel: string;
+  danger?: boolean;
+  onCancel: () => void;
+  onConfirm: () => void
+}) {
+  const { t } = useTranslation("community");
+  return <div
+    className="fixed inset-0 z-50 flex items-center justify-center bg-text/40 p-4"
+    onMouseDown={onCancel}
+  >
+    <section
+      role="dialog"
+      aria-modal="true"
+      onMouseDown={(event) => event.stopPropagation()}
+      className="w-full max-w-md rounded-lg border border-main/15 bg-white p-6 text-center"
+    >
+      <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-accent/20 text-main">
+        <Icon name={danger ? "trash" : "edit"} />
+      </span>
+      <h2 className="mt-4 text-xl font-semibold text-main">
+        {title}
+      </h2>
+      <p className="mt-2 text-sm text-text/70">
+        {description}
+      </p>
+      <div className="mt-6 flex justify-center gap-2">
+        <Button
+          variant="secondary"
+          onClick={onCancel}
+        >
+          {t("common.cancel")}
+        </Button>
+        <Button
+          variant={danger ? "danger" : "primary"}
+          onClick={onConfirm}
+        >
+          {confirmLabel}
+        </Button>
+      </div>
+    </section>
+  </div>
+}
+type AuthorProps = {
+  authorId: number | null;
+  name: string | null;
+  room?: string | null;
+  popupKey: string;
+  open: string | null;
+  onOpenChange: (value: string | null) => void;
+  onChat: (id: number) => void;
+  onBlock: (id: number, name: string) => void;
+  disabled: boolean;
+  currentUserId: number
+}
+function Author({ authorId, name, room, popupKey, open, onOpenChange, onChat, onBlock, disabled, currentUserId }: AuthorProps) {
+  const { t } = useTranslation("community");
+  if (!name) return null;
+  const other = authorId !== null && authorId !== currentUserId;
+  return <span className="relative flex items-center gap-2">
+    <Avatar
+      name={name}
+      size="sm"
+    />
+    <button
+      onClick={() => onOpenChange(open === popupKey ? null : popupKey)}
+      className="text-sm font-semibold text-text focus-visible:outline-2 focus-visible:outline-accent"
+    >
+      {name}
+    </button>
+    {room && <small className="text-text/70">
+      {room}
+    </small>}
+    {other && <button
+      disabled={disabled}
+      onClick={() => onChat(authorId)}
+      className="ml-2 flex items-center gap-1 text-xs font-semibold text-main disabled:opacity-50"
+    >
+      <Icon
+        name="message"
+        size={13}
+      />
+      {t("post.chat")}
+    </button>}
+    {open === popupKey && other && <span className="absolute top-full left-8 z-10 mt-2 w-48 rounded-lg border border-main/15 bg-white p-3">
+      <strong className="block text-sm text-text">
+        {name}
+      </strong>
+      <small className="text-text/70">
+        {room}
+      </small>
+      <span className="mt-3 flex gap-2">
+        <button
+          disabled={disabled}
+          onClick={() => onChat(authorId)}
+          className="text-xs font-semibold text-main"
+        >
+          {t("post.chat")}
+        </button>
+        <button
+          onClick={() => onBlock(authorId, name)}
+          className="text-xs font-semibold text-accent"
+        >
+          {t("blockModal.block")}
+        </button>
+      </span>
+    </span>}
+  </span>
+}
+function Comment({ item, body, profile, onProfileChange, onChat, onBlock, disabled, currentUserId, locale }: {
+  item: CommunityComment | CommunityReply;
+  body: ReactNode;
+  profile: string | null;
+  onProfileChange: (value: string | null) => void;
+  onChat: (id: number) => void;
+  onBlock: (id: number, name: string) => void;
+  disabled: boolean;
+  currentUserId: number;
+  locale: string
+}) {
+  return <div className="flex gap-3">
+    {item.status !== "DELETED" && !item.blocked && <Avatar
+      name={item.authorName ?? ""}
+      size="sm"
+    />}
+    <div className="min-w-0 flex-1">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <Author
+          authorId={item.authorId}
+          name={item.authorName}
+          room={item.authorRoomNumber}
+          popupKey={`comment-${item.commentId}`}
+          open={profile}
+          onOpenChange={onProfileChange}
+          onChat={onChat}
+          onBlock={onBlock}
+          disabled={disabled}
+          currentUserId={currentUserId}
+        />
+        <time className="text-xs text-text/70">
+          {dateTime(item.createdAt, locale)}
+        </time>
+      </div>
+      {body}
+    </div>
+  </div>
+}

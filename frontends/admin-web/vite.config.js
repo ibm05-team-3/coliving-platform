@@ -10,5 +10,12 @@ export default defineConfig({
   ],
   server: {
     port: 3000,
+    proxy: {
+      '/api/dashboard': {
+        target: 'http://localhost:8085',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/dashboard/, '/dashboard'),
+      },
+    },
   },
 })

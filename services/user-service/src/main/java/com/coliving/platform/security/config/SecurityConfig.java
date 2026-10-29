@@ -1,10 +1,12 @@
 package com.coliving.platform.security.config;
 
 import com.coliving.platform.security.filter.LoginFilter;
-import com.coliving.platform.security.handler.LoginFailureHandler;
 import com.coliving.platform.security.handler.LoginSuccessHandler;
+import com.coliving.platform.security.http.SessionCookieFactory;
+import com.coliving.platform.security.oauth.RedisOAuth2AuthorizationRequestRepository;
 import com.coliving.platform.security.service.AuthService;
 import com.coliving.platform.security.service.CustomOAuth2UserService;
+import com.coliving.platform.security.service.CustomOidcUserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,7 +18,12 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestCustomizers;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
@@ -24,10 +31,18 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+    private static final String LOGIN_URL = "/user/login";
+    private static final String OAUTH_AUTHORIZATION_BASE_URI = "/user/oauth2/authorization";
+    private static final String OAUTH_CALLBACK_URI = "/user/oauth2/code/*";
+
     private final AuthenticationSuccessHandler socialSuccessHandler;
+    private final AuthenticationFailureHandler socialFailureHandler;
 
     private final CustomOAuth2UserService customOAuth2UserService;
+    private final CustomOidcUserService customOidcUserService;
     private final AuthService authService;
+    private final SessionCookieFactory sessionCookieFactory;
+    private final RedisOAuth2AuthorizationRequestRepository authorizationRequestRepository;
 
     @Bean
     PasswordEncoder passwordEncoder() {
@@ -40,13 +55,21 @@ public class SecurityConfig {
     }
 
     @Bean
+    OAuth2AuthorizationRequestResolver authorizationRequestResolver(ClientRegistrationRepository registrations) {
+        DefaultOAuth2AuthorizationRequestResolver resolver =
+                new DefaultOAuth2AuthorizationRequestResolver(registrations, OAUTH_AUTHORIZATION_BASE_URI);
+        resolver.setAuthorizationRequestCustomizer(OAuth2AuthorizationRequestCustomizers.withPkce());
+        return resolver;
+    }
+
+    @Bean
     public SecurityFilterChain filterChain(HttpSecurity http,
-                                           AuthenticationManager authenticationManager) throws Exception {
+                                           AuthenticationManager authenticationManager,
+                                           OAuth2AuthorizationRequestResolver authorizationRequestResolver) throws Exception {
 
         // 로그인 필터
-        LoginFilter loginFilter = new LoginFilter(authenticationManager);
-        loginFilter.setAuthenticationSuccessHandler(new LoginSuccessHandler(authService));
-        loginFilter.setAuthenticationFailureHandler(new LoginFailureHandler());
+        LoginFilter loginFilter = new LoginFilter(authenticationManager, LOGIN_URL);
+        loginFilter.setAuthenticationSuccessHandler(new LoginSuccessHandler(authService, sessionCookieFactory));
 
         // http 설정
         http
@@ -60,13 +83,17 @@ public class SecurityConfig {
                         .anyRequest().permitAll()
                 )
                 .oauth2Login(oauth -> oauth
+                        .authorizationEndpoint(endpoint -> endpoint
+                                .authorizationRequestResolver(authorizationRequestResolver)
+                                .authorizationRequestRepository(authorizationRequestRepository)
+                        )
+                        .redirectionEndpoint(endpoint -> endpoint.baseUri(OAUTH_CALLBACK_URI))
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(customOAuth2UserService)
+                                .oidcUserService(customOidcUserService)
                         )
                         .successHandler(socialSuccessHandler)
-                        .failureHandler(((request, response, exception) -> {
-                            exception.printStackTrace();
-                        }))
+                        .failureHandler(socialFailureHandler)
                 )
                 .addFilterAt(loginFilter, UsernamePasswordAuthenticationFilter.class);
 

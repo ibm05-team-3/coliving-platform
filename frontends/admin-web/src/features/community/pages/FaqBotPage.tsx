@@ -1,0 +1,541 @@
+import { type DragEvent, type FormEvent, type ReactNode, useEffect, useRef, useState } from "react"
+import { askFaqBot, deleteFaqDocument, downloadFaqDocument, getFaqDocuments, getFaqIndexSummary, getFaqReindexJob, reindexFaqDocuments, uploadFaqDocument } from "../api"
+import { Badge, Button, Icon, PageHeader } from "../components"
+import type { FaqAskResponse, FaqDocumentFile, FaqDocumentScope, FaqIndexStatus } from "../types"
+
+type SyncState = "idle" | "processing" | "completed"
+type PreviewExchange = {
+  id: number;
+  question: string;
+  response: FaqAskResponse
+}
+const STATUS_LABELS: Record<FaqIndexStatus, string> = {
+  PENDING: "대기",
+  PROCESSING: "처리 중",
+  COMPLETED: "완료",
+  FAILED: "실패"
+}
+const STATUS_BADGES: Record<FaqIndexStatus, string> = {
+  PENDING: "accent",
+  PROCESSING: "info",
+  COMPLETED: "success",
+  FAILED: "warning"
+}
+const BUILDING_NAMES: Record<number, string> = {
+  1: "망원 스테이",
+  2: "연남 하우스",
+  3: "성수 로프트"
+}
+const reflectedTime = (value: string) => new Date(value).toLocaleString("ko-KR", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit"
+})
+const uploadDate = (value: string) => new Date(value).toLocaleDateString("ko-KR", {
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit"
+})
+const FIELD_CLASS = "w-full rounded-lg border border-main/15 bg-white px-3 py-2.5 text-sm text-text outline-none focus-visible:outline-2 focus-visible:outline-accent"
+
+export default function FaqBotPage({ title }: { title: string }) {
+  const [documents, setDocuments] = useState<FaqDocumentFile[]>([])
+  const [summary, setSummary] = useState({
+    lastReflectedAt: "",
+    reflectedCount: 0,
+    pendingChanges: 0
+  })
+  const [syncState, setSyncState] = useState<SyncState>("idle")
+  const [modalOpen, setModalOpen] = useState(false)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
+  const [documentTitle, setDocumentTitle] = useState("")
+  const [scope, setScope] = useState<FaqDocumentScope>("COMMON")
+  const [buildingId, setBuildingId] = useState(1)
+  const [dragging, setDragging] = useState(false)
+  const [fileError, setFileError] = useState("")
+  const [testBuildingId, setTestBuildingId] = useState(1)
+  const [question, setQuestion] = useState("")
+  const [exchanges, setExchanges] = useState<PreviewExchange[]>([])
+  const [asking, setAsking] = useState(false)
+  const previewBodyRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    document.title = title
+  }, [title])
+  useEffect(() => {
+    Promise.all([
+      getFaqDocuments(),
+      getFaqIndexSummary(),
+      askFaqBot({ question: "최소 계약 기간이 어떻게 되나요?", buildingId: 1 })
+    ]).then(([documentResponse, summaryResponse, answer]) => {
+      setDocuments(documentResponse);
+      setSummary(summaryResponse);
+      setExchanges([{
+        id: 1,
+        question: "최소 계약 기간이 어떻게 되나요?",
+        response: answer
+      }])
+    })
+  }, [])
+  useEffect(() => {
+    if (previewBodyRef.current) previewBodyRef.current.scrollTop = previewBodyRef.current.scrollHeight
+  }, [exchanges, asking])
+
+  const handleResetUpload = () => {
+    setSelectedFile(null);
+    setDocumentTitle("");
+    setScope("COMMON");
+    setBuildingId(1);
+    setFileError("");
+    setDragging(false)
+  }
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    handleResetUpload()
+  }
+  const handleChooseFile = (file?: File) => {
+    if (!file) return
+    const extension = file.name.split(".").pop()?.toUpperCase() ?? ""
+    if (![
+      "PDF",
+      "DOCX",
+      "TXT",
+      "MD"
+    ].includes(extension)) {
+      setFileError("PDF, DOCX, TXT, MD 파일만 올릴 수 있어요.");
+      return
+    }
+    setSelectedFile(file);
+    setFileError("");
+    if (!documentTitle) setDocumentTitle(file.name.replace(/\.[^.]+$/, ""))
+  }
+  const handleDropFile = (event: DragEvent<HTMLLabelElement>) => {
+    event.preventDefault();
+    setDragging(false);
+    handleChooseFile(event.dataTransfer.files[0])
+  }
+  const handleUploadDocument = async (event: FormEvent) => {
+    event.preventDefault()
+    if (!selectedFile || !documentTitle.trim()) return
+    const response = await uploadFaqDocument({
+      file: selectedFile,
+      title: documentTitle.trim(),
+      scope,
+      buildingId: scope === "BUILDING" ? buildingId : undefined
+    })
+    const extension = selectedFile.name.split(".").pop()?.toUpperCase() as FaqDocumentFile["fileType"]
+    setDocuments((current) => [
+      ...current,
+      {
+        documentId: Math.max(response.documentId - 1, ...current.map((document) => document.documentId)) + 1,
+        title: documentTitle.trim(),
+        scope,
+        buildingName: scope === "BUILDING" ? BUILDING_NAMES[buildingId] : null,
+        fileName: selectedFile.name,
+        fileType: extension,
+        uploadedAt: new Date().toISOString(),
+        indexStatus: response.indexStatus,
+        indexError: null
+      }
+    ])
+    setSummary((current) => ({ ...current, pendingChanges: current.pendingChanges + 1 }));
+    handleCloseModal()
+  }
+  const handleRemoveDocument = async (documentId: number) => {
+    await deleteFaqDocument(documentId);
+    setDocuments((current) => current.filter((document) => document.documentId !== documentId));
+    setSummary((current) => ({ ...current, pendingChanges: current.pendingChanges + 1 }))
+  }
+  const handleDownloadDocument = async (documentId: number) => {
+    const document = await downloadFaqDocument(documentId);
+    if (!document) return;
+    const url = URL.createObjectURL(new Blob([`${document.title}\nFAQ 봇 학습 문서 미리보기 파일입니다.`], { type: "text/plain" }));
+    const anchor = window.document.createElement("a");
+    anchor.href = url;
+    anchor.download = document.fileName;
+    anchor.click();
+    URL.revokeObjectURL(url)
+  }
+  const handleReflectUpdates = async () => {
+    if (syncState === "processing") return
+    setSyncState("processing");
+    setDocuments((current) => current.map((document) => document.indexStatus === "PENDING" || document.indexStatus === "FAILED" ? { ...document, indexStatus: "PROCESSING" } : document))
+    const job = await reindexFaqDocuments()
+    window.setTimeout(async () => {
+      await getFaqReindexJob(job.jobId);
+      setDocuments((current) => {
+        const completed = current.map((document) => ({ ...document, indexStatus: "COMPLETED" as const }));
+        setSummary({
+          lastReflectedAt: new Date().toISOString(),
+          reflectedCount: completed.length,
+          pendingChanges: 0
+        });
+        return completed
+      });
+      setSyncState("completed");
+      window.setTimeout(() => setSyncState("idle"), 1400)
+    }, 1500)
+  }
+  const handleAskQuestion = async (value: string) => {
+    const trimmed = value.trim();
+    if (!trimmed || asking) return;
+    setAsking(true);
+    setQuestion("");
+    const response = await askFaqBot({ question: trimmed, buildingId: testBuildingId });
+    setExchanges((current) => [...current, {
+      id: Date.now(),
+      question: trimmed,
+      response
+    }]);
+    setAsking(false)
+  }
+
+  return <div className="mx-auto max-w-[1500px] p-4 sm:p-6 lg:p-8">
+
+    <PageHeader
+      eyebrow="FAQ BOT"
+      title={title}
+      description="규정·안내 문서를 등록하면 FAQ 봇이 문서 내용으로 답변해요."
+      actions={<Button
+        icon="plus"
+        onClick={() => setModalOpen(true)}
+      >문서 추가</Button>}
+    />
+
+
+    <section className="mb-4 flex flex-wrap items-center gap-5 rounded-lg border border-main/15 bg-white p-4 shadow-sm">
+      <Metric
+        label="마지막 반영 일시"
+        value={summary.lastReflectedAt ? reflectedTime(summary.lastReflectedAt) : "-"}
+      />
+      <Metric
+        label="반영된 문서"
+        value={`${summary.reflectedCount}개`}
+      />
+      {summary.pendingChanges > 0 && <Badge type="accent">반영되지 않은 변경
+        {summary.pendingChanges}
+        건</Badge>}
+      <Button
+        className="ml-auto"
+        onClick={() => void handleReflectUpdates()}
+        disabled={syncState === "processing"}
+      >
+        {syncState === "processing" ? <>
+          <Spinner />
+          처리 중</> : syncState === "completed" ? "반영 완료" : "업데이트 반영"}
+      </Button>
+    </section>
+
+
+    <div className="grid items-start gap-4 xl:grid-cols-[minmax(650px,1fr)_390px]">
+
+      <section className="overflow-hidden rounded-lg border border-main/15 bg-white shadow-sm">
+        <header className="flex items-center justify-between border-b border-main/15 p-5">
+          <div>
+            <h2 className="font-semibold text-text">등록 문서</h2>
+            <p className="mt-1 text-xs text-text/70">FAQ 답변의 근거로 사용할 최신 문서를 관리하세요.</p>
+          </div>
+          <span className="text-xs font-semibold text-text/70">총
+            {documents.length}
+            개</span>
+        </header>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[720px] text-left text-sm">
+            <thead className="bg-background text-xs text-text/70">
+              <tr>
+                <th className="px-4 py-3">문서명</th>
+                <th className="px-4 py-3">적용 범위</th>
+                <th className="px-4 py-3">파일 형식</th>
+                <th className="px-4 py-3">업로드일</th>
+                <th className="px-4 py-3">반영 상태</th>
+                <th className="px-4 py-3">관리</th>
+              </tr>
+            </thead>
+            <tbody>
+              {documents.map((document) => <tr
+                className="border-t border-main/15"
+                key={document.documentId}
+              >
+                <td className="px-4 py-4">
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-background text-main">
+                      <Icon
+                        name="resource"
+                        size={16}
+                      />
+                    </span>
+                    <div>
+                      <strong className="block text-sm text-text">
+                        {document.title}
+                      </strong>
+                      <small className="text-xs text-text/70">
+                        {document.fileName}
+                      </small>
+                    </div>
+                  </div>
+                </td>
+                <td className="px-4 py-4">
+                  <Badge type={document.scope === "COMMON" ? "neutral" : "info"}>
+                    {document.scope === "COMMON" ? "공통" : document.buildingName}
+                  </Badge>
+                </td>
+                <td className="px-4 py-4 text-text/70">
+                  {document.fileType}
+                </td>
+                <td className="px-4 py-4 text-text/70">
+                  {uploadDate(document.uploadedAt)}
+                </td>
+                <td className="px-4 py-4">
+                  <Badge type={STATUS_BADGES[document.indexStatus]}>
+                    {STATUS_LABELS[document.indexStatus]}
+                  </Badge>
+                </td>
+                <td className="px-4 py-4">
+                  <div className="flex gap-2">
+                    <button
+                      className="text-xs font-semibold text-main focus-visible:outline-2 focus-visible:outline-accent"
+                      onClick={() => void handleDownloadDocument(document.documentId)}
+                    >다운로드</button>
+                    <button
+                      className="text-xs font-semibold text-text/70 focus-visible:outline-2 focus-visible:outline-accent"
+                      onClick={() => void handleRemoveDocument(document.documentId)}
+                    >삭제</button>
+                  </div>
+                </td>
+              </tr>)}
+            </tbody>
+          </table>
+        </div>
+        <footer className="border-t border-main/15 bg-background px-5 py-4 text-xs text-text/70">지원 형식 PDF · DOCX · TXT · MD</footer>
+      </section>
+
+
+      <aside className="rounded-lg border border-main/15 bg-white p-4 shadow-sm">
+        <div className="mb-4 flex items-end justify-between gap-3">
+          <div>
+            <p className="mb-1 text-xs font-bold tracking-[0.16em] text-accent">USER WIDGET</p>
+            <h2 className="font-semibold text-text">FAQ 답변 테스트</h2>
+          </div>
+          <label className="text-xs font-semibold text-text/70">테스트할 건물
+            <select
+              className={`${FIELD_CLASS} mt-1`}
+              value={testBuildingId}
+              onChange={(event) => setTestBuildingId(Number(event.target.value))}
+            >
+              {Object.entries(BUILDING_NAMES).map(([id, name]) => <option
+                value={id}
+                key={id}
+              >
+                {name}
+              </option>)}
+            </select>
+          </label>
+        </div>
+        <div className="flex h-[570px] flex-col overflow-hidden rounded-lg border border-main/15 bg-background">
+          <header className="flex items-center gap-3 bg-main p-4 text-white">
+            <span className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-main">
+              <Icon
+                name="bot"
+                size={20}
+              />
+            </span>
+            <div>
+              <strong className="block text-sm">룸링크 도우미</strong>
+              <span className="text-xs opacity-70">자동 응답</span>
+            </div>
+          </header>
+          <div
+            className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4"
+            ref={previewBodyRef}
+          >
+            <Bubble>등록된 문서를 기준으로 답변을 테스트해 보세요.</Bubble>
+            <div className="flex flex-wrap gap-2">
+              <QuestionButton onClick={() => void handleAskQuestion("최소 계약 기간이 어떻게 되나요?")}>계약 기간 질문</QuestionButton>
+              <QuestionButton onClick={() => void handleAskQuestion("옥상 수영장 운영 시간이 궁금해요")}>문서에 없는 질문</QuestionButton>
+            </div>
+            {exchanges.map((exchange) => <div
+              className="space-y-2"
+              key={exchange.id}
+            >
+              <Bubble outgoing>
+                {exchange.question}
+              </Bubble>
+              <Bubble>
+                {exchange.response.answer}
+              </Bubble>
+              {exchange.response.sources.length > 0 && <p className="text-xs text-text/70">출처:
+                {exchange.response.sources.map((source) => source.title).join(", ")}
+              </p>}
+              {exchange.response.fallback && <button className="rounded-lg border border-main/15 bg-white px-3 py-2 text-xs font-semibold text-main focus-visible:outline-2 focus-visible:outline-accent">쪽지로 문의하기</button>}
+            </div>)}
+            {asking && <div className="flex items-center gap-2 text-xs text-text/70">
+              <Spinner />
+              문서에서 답을 찾고 있어요</div>}
+          </div>
+          <form
+            className="flex gap-2 border-t border-main/15 bg-white p-3"
+            onSubmit={(event) => {
+              event.preventDefault();
+              void handleAskQuestion(question)
+            }}
+          >
+            <input
+              className="min-w-0 flex-1 bg-transparent px-2 text-sm text-text outline-none placeholder:text-text/70"
+              value={question}
+              onChange={(event) => setQuestion(event.target.value)}
+              placeholder="질문을 입력하세요"
+            />
+            <button
+              className="flex h-9 w-9 items-center justify-center rounded-lg bg-main text-white focus-visible:outline-2 focus-visible:outline-accent"
+              aria-label="질문 보내기"
+            >
+              <Icon
+                name="send"
+                size={18}
+              />
+            </button>
+          </form>
+        </div>
+      </aside>
+
+    </div>
+
+
+    {modalOpen && <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-main/15 p-4"
+      onMouseDown={handleCloseModal}
+    >
+      <form
+        className="w-full max-w-lg overflow-hidden rounded-lg border border-main/15 bg-white shadow-xl"
+        onSubmit={handleUploadDocument}
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <header className="flex items-start justify-between border-b border-main/15 p-5">
+          <div>
+            <p className="mb-1 text-xs font-bold tracking-[0.16em] text-accent">FAQ DOCUMENT</p>
+            <h2 className="text-lg font-semibold text-main">문서 추가</h2>
+          </div>
+          <button
+            type="button"
+            className="rounded-lg p-2 text-text/70 focus-visible:outline-2 focus-visible:outline-accent"
+            onClick={handleCloseModal}
+            aria-label="닫기"
+          >
+            <Icon name="close" />
+          </button>
+        </header>
+        <div className="space-y-4 p-5">
+          <label
+            className={`flex min-h-36 cursor-pointer flex-col items-center justify-center rounded-lg border border-main/15 p-5 text-center focus-within:outline-2 focus-within:outline-accent ${dragging || selectedFile ? "bg-background" : "bg-white"}`}
+            onDragOver={(event) => {
+              event.preventDefault();
+              setDragging(true)
+            }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={handleDropFile}
+          >
+            <input
+              className="sr-only"
+              type="file"
+              accept=".pdf,.docx,.txt,.md"
+              onChange={(event) => handleChooseFile(event.target.files?.[0])}
+            />
+            <span className="mb-2 flex h-11 w-11 items-center justify-center rounded-lg bg-background text-main">
+              <Icon
+                name="resource"
+                size={24}
+              />
+            </span>
+            <strong className="text-sm text-text">
+              {selectedFile ? selectedFile.name : "파일을 끌어다 놓거나 클릭해 선택하세요"}
+            </strong>
+            <small className="mt-1 text-xs text-text/70">PDF, DOCX, TXT, MD · 최대 10MB</small>
+          </label>
+          {fileError && <p className="text-xs font-semibold text-accent">
+            {fileError}
+          </p>}
+          <Field label="문서명">
+            <input
+              className={FIELD_CLASS}
+              value={documentTitle}
+              onChange={(event) => setDocumentTitle(event.target.value)}
+              placeholder="관리 화면에 표시할 문서명"
+            />
+          </Field>
+          <Field label="적용 범위">
+            <select
+              className={FIELD_CLASS}
+              value={scope}
+              onChange={(event) => setScope(event.target.value as FaqDocumentScope)}
+            >
+              <option value="COMMON">공통</option>
+              <option value="BUILDING">건물 선택</option>
+            </select>
+          </Field>
+          {scope === "BUILDING" && <Field label="건물">
+            <select
+              className={FIELD_CLASS}
+              value={buildingId}
+              onChange={(event) => setBuildingId(Number(event.target.value))}
+            >
+              {Object.entries(BUILDING_NAMES).map(([id, name]) => <option
+                value={id}
+                key={id}
+              >
+                {name}
+              </option>)}
+            </select>
+          </Field>}
+        </div>
+        <footer className="flex justify-end gap-2 border-t border-main/15 bg-background p-4">
+          <Button
+            variant="secondary"
+            onClick={handleCloseModal}
+          >취소</Button>
+          <Button
+            type="submit"
+            disabled={!selectedFile || !documentTitle.trim()}
+          >업로드</Button>
+        </footer>
+      </form>
+    </div>}
+
+  </div>
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return <div>
+    <span className="block text-xs text-text/70">
+      {label}
+    </span>
+    <strong className="mt-1 block text-sm text-text">
+      {value}
+    </strong>
+  </div>
+}
+function Spinner() {
+  return <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-main/15 border-t-main" />
+}
+function Bubble({ children, outgoing = false }: { children: ReactNode; outgoing?: boolean }) {
+  return <div className={`w-fit max-w-[85%] rounded-lg border border-main/15 px-3 py-2 text-sm leading-6 ${outgoing ? "ml-auto bg-main text-white" : "bg-white text-text"}`}>
+    {children}
+  </div>
+}
+function QuestionButton({ children, onClick }: { children: ReactNode; onClick: () => void }) {
+  return <button
+    className="rounded-lg border border-main/15 bg-white px-3 py-2 text-xs font-semibold text-main focus-visible:outline-2 focus-visible:outline-accent"
+    onClick={onClick}
+  >
+    {children}
+  </button>
+}
+function Field({ label, children }: { label: string; children: ReactNode }) {
+  return <label className="block text-xs font-semibold text-text/70">
+    {label}
+    <span className="mt-2 block">
+      {children}
+    </span>
+  </label>
+}

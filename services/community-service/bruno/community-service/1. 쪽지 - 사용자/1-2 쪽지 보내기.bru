@@ -1,0 +1,22 @@
+meta {
+  name: 1-2 쪽지 보내기 (후보자 → 관리자)
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/community-service/notes
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{userId}}
+}
+
+body:json {
+  {
+    "content": "11월 초 입주 가능한 방이 있을까요?"
+  }
+}
+
