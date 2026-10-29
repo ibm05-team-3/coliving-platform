@@ -14,13 +14,13 @@ syntax = "proto3";
 package coliving.user.v1;
 
 option java_multiple_files = true;
-option java_package = "com.coliving.platform.grpc.room";
+option java_package = "com.coliving.platform.grpc.user";
 option java_outer_classname = "UserProto";
 
-service userService {
+service UserService {
   // 계약 화면, 계약 저장에 필요한 유저 정보 1건 조회
   //없는 유저면 서버는 Status Not_Found로 응답한다.
-  rpc GetRoomContractInfo (GetUserContractInfoRequest) returns (UserContractInfo);
+  rpc GetUserContractInfo (GetUserContractInfoRequest) returns (UserContractInfo);
 }
 message GetUserContractInfoRequest {
   int64 user_id = 1;

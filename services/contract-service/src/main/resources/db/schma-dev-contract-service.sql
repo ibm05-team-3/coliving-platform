@@ -1,3 +1,6 @@
+
+DROP DATABASE IF EXISTS contract_service;
+
 CREATE DATABASE contract_service ENCODING 'UTF8';
 
 CREATE EXTENSION IF NOT EXISTS btree_gist;

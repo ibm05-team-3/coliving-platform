@@ -9,6 +9,8 @@ import com.coliving.platform.contract.entity.ContractStatusHistory;
 import com.coliving.platform.contract.repository.ContractRepository;
 import com.coliving.platform.contract.repository.HistoryRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.stereotype.Service;
+
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -17,6 +19,7 @@ import java.time.format.DateTimeFormatter;
 
 import static com.coliving.platform.contract.enums.ContractStatus.DRAFT;
 
+@Service
 public class ApplicationService {
     private static final DateTimeFormatter NO_DATE = DateTimeFormatter.BASIC_ISO_DATE; // 20261028
     ContractRepository contractRepository;

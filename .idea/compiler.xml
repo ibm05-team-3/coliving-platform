@@ -7,8 +7,8 @@
         <processorPath useClasspath="false">
           <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.48/6858f13541bab505384f07053c5a7b539bbfd3e3/lombok-1.18.48.jar" />
         </processorPath>
-        <module name="contract-service.test" />
-        <module name="contract-service.main" />
+        <module name="community-service.test" />
+        <module name="community-service.main" />
       </profile>
     </annotationProcessing>
   </component>
@@ -17,12 +17,18 @@
       <module name="api-gateway" options="-parameters" />
       <module name="api-gateway.main" options="-parameters" />
       <module name="api-gateway.test" options="-parameters" />
+      <module name="community-service" options="-parameters" />
+      <module name="community-service.main" options="-parameters" />
+      <module name="community-service.test" options="-parameters" />
       <module name="config-server" options="-parameters" />
       <module name="config-server.main" options="-parameters" />
       <module name="config-server.test" options="-parameters" />
       <module name="contract-service" options="-parameters" />
       <module name="contract-service.main" options="-parameters" />
       <module name="contract-service.test" options="-parameters" />
+      <module name="dashboard-service" options="-parameters" />
+      <module name="dashboard-service.main" options="-parameters" />
+      <module name="dashboard-service.test" options="-parameters" />
       <module name="eureka-server" options="-parameters" />
       <module name="eureka-server.main" options="-parameters" />
       <module name="eureka-server.test" options="-parameters" />

@@ -12,7 +12,7 @@ package com.coliving.platform.contract.dto.internal;
 public record UserContractInfoDTO(
 
         //식별
-        Long user_id,
+        Long userId,
         //화면 표시
         String name,
         String email,

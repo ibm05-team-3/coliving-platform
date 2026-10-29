@@ -1,6 +1,8 @@
 package com.coliving.platform.common.config;
 
 import com.coliving.platform.grpc.room.RoomServiceGrpc;
+
+import com.coliving.platform.grpc.user.UserServiceGrpc;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.grpc.client.ImportGrpcClients;
 
@@ -15,11 +17,8 @@ import org.springframework.grpc.client.ImportGrpcClients;
  */
 @Configuration
 @ImportGrpcClients(target = "room", types = RoomServiceGrpc.RoomServiceBlockingStub.class)
+@ImportGrpcClients(target = "user", types = UserServiceGrpc.UserServiceBlockingStub.class)
 public class GrpcClientConfig {
 }
 
-@Configuration
-@ImportGrpcClients(target = "user", types = UserServiceGrpc.UserServiceBlockingStub.class)
-public class GrpcClinetConfig{
 
-}

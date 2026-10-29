@@ -1,4 +1,5 @@
 -- user-service DB 초기화 스크립트
+
 DROP DATABASE IF EXISTS user_service;
 CREATE DATABASE user_service ENCODING 'UTF8';
 
@@ -58,6 +59,11 @@ CREATE TABLE user_social_accounts (
     CONSTRAINT fk_user_social_accounts_user
         FOREIGN KEY (user_id) REFERENCES users (id)
 );
+
+ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS created_at TIMESTAMP(6) NOT NULL DEFAULT now(),
+    ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP(6) NOT NULL DEFAULT now(),
+    ADD COLUMN IF NOT EXISTS name VARCHAR(100) NOT NULL DEFAULT '';
 
 -- 확인용
 SELECT * FROM users;
