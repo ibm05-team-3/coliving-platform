@@ -15,5 +15,7 @@
   "myApplication": "내 입주 신청서",
   "myReservations": "내 예약 내역",
   "accountSettings": "계정 설정",
+  "signup": "회원가입",
+  "login": "로그인",
   "logout": "로그아웃"
 }

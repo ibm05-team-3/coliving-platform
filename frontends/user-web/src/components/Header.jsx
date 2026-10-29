@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { NavLink, useLocation, useNavigate } from 'react-router'
 import LocaleSwitch from './LocaleSwitch'
 import { isResident } from '../resident'
+import { useSession } from '../session'
 import { NotificationPanel } from '../features/community/components/NotificationPanel'
 import { useSupportWidget } from '../features/community/components/SupportWidgetContext'
 
@@ -242,6 +243,26 @@ function MyMenu() {
   )
 }
 
+function AuthButtons() {
+  const { t } = useTranslation('common')
+  const location = useLocation()
+
+  return (
+    <>
+      <NavLink to="/signup" className={({ isActive }) => `${linkClass(isActive)} whitespace-nowrap`}>
+        {t('signup')}
+      </NavLink>
+      <NavLink
+        to="/login"
+        state={{ from: `${location.pathname}${location.search}` }}
+        className="rounded-lg bg-main px-2 py-1.5 text-sm font-semibold whitespace-nowrap text-background hover:bg-main/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:px-3"
+      >
+        {t('login')}
+      </NavLink>
+    </>
+  )
+}
+
 function ResidentLinks() {
   return (
     <div className="flex w-max items-center gap-1 whitespace-nowrap">
@@ -255,6 +276,7 @@ function ResidentLinks() {
 function Header() {
   const { t, i18n } = useTranslation('common')
   const resident = isResident()
+  const session = useSession()
   const headerRef = useRef(null)
   const findRef = useRef(null)
   const residentRef = useRef(null)
@@ -325,7 +347,7 @@ function Header() {
           >
             <LanguageMenu />
             <NotificationMenu />
-            <MyMenu />
+            {session.status === 'ready' && (session.authenticated ? <MyMenu /> : <AuthButtons />)}
           </div>
         </nav>
       </div>

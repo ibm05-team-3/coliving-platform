@@ -26,6 +26,7 @@ function App() {
         <Route path="/my/application" element={<SectionPage titleKey="myApplication" />} />
         <Route path="/my/reservations" element={<SectionPage titleKey="myReservations" />} />
         <Route path="/my/settings" element={<SectionPage titleKey="accountSettings" />} />
+        <Route path="/signup" element={<SectionPage titleKey="signup" />} />
       </Route>
     </Routes>
   )
