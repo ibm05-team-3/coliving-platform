@@ -19,3 +19,6 @@ export const fetchActivityLogs = (buildingId, size = 10) =>
 
 export const fetchSummary = (buildingId, month) =>
     get('/summary', month ? { buildingId, month } : { buildingId })
+
+export const fetchMonitoringSummary = () => get('/monitoring/summary')
+export const fetchMonitoringCharts = () => get('/monitoring/charts')
