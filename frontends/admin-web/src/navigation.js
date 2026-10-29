@@ -5,13 +5,18 @@ import NotesPage from './features/community/pages/NotesPage'
 import ReportsPage from './features/community/pages/ReportsPage'
 import ResidentsPage from './features/community/pages/ResidentsPage'
 import DashboardPage from './features/dashboard/pages/DashboardPage'
+import MonitoringPage from './features/dashboard/pages/MonitoringPage'
 import { getAdminNoteBadgeCount, getAdminReportBadgeCount } from './features/community/api'
 
 // 로그인(/login)은 이 목록에 넣지 않습니다. 그 화면은 AdminLayout 밖에 둡니다.
 // page는 그 주소의 화면입니다. 아직 화면이 없으면 ScreenPage를 넣습니다.
 export const navigation = [
   {
-    items: [{ label: '대시보드', to: '/', page: DashboardPage }],
+    label: '대시보드',
+    items: [
+      { label: '대시보드', to: '/', page: DashboardPage },
+      { label: '시스템 모니터링', to: '/monitoring', page: MonitoringPage }
+    ],
   },
   {
     label: '문서',
