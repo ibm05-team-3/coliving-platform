@@ -6,5 +6,8 @@
   "email": "Email",
   "password": "Password",
   "submit": "Log in",
-  "submitting": "Signing in"
+  "submitting": "Signing in",
+  "or": "or",
+  "googleSignIn": "Sign in with Google",
+  "naverSignIn": "Log in with NAVER"
 }
