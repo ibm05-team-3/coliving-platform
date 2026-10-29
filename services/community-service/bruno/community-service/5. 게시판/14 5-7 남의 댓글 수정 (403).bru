@@ -1,0 +1,21 @@
+meta {
+  name: 5-7 남의 댓글 수정 → 403 NOT_OWNER
+  type: http
+  seq: 14
+}
+
+put {
+  url: {{baseUrl}}/community-service/comments/{{commentId}}
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}
+
+body:json {
+  {
+    "content": "남의 댓글 수정 시도"
+  }
+}

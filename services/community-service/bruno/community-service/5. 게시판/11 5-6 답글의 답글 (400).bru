@@ -1,0 +1,22 @@
+meta {
+  name: 5-6 답글에 또 답글 → 400 REPLY_DEPTH_EXCEEDED
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{baseUrl}}/community-service/posts/{{postId}}/comments
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId2}}
+}
+
+body:json {
+  {
+    "content": "답글의 답글",
+    "parentCommentId": {{replyId}}
+  }
+}

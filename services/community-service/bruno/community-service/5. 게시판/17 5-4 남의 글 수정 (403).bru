@@ -1,0 +1,23 @@
+meta {
+  name: 5-4 남의 글 수정 → 403 NOT_OWNER
+  type: http
+  seq: 17
+}
+
+put {
+  url: {{baseUrl}}/community-service/posts/{{postId}}
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId2}}
+}
+
+body:json {
+  {
+    "category": "FREE",
+    "title": "남의 글 수정",
+    "content": "수정 시도"
+  }
+}

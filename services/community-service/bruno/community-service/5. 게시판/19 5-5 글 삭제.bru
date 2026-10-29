@@ -1,0 +1,15 @@
+meta {
+  name: 5-5 글 삭제 (5001 본인)
+  type: http
+  seq: 19
+}
+
+delete {
+  url: {{baseUrl}}/community-service/posts/{{postId}}
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}
