@@ -227,7 +227,11 @@ function MyMenu() {
           ))}
           <button
             type="button"
-            onClick={() => navigate('/login')}
+            onClick={() =>
+              navigate('/login', {
+                state: { from: `${location.pathname}${location.search}` },
+              })
+            }
             className="rounded-lg px-3 py-2 text-left text-sm font-medium whitespace-nowrap text-text hover:bg-main/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
           >
             {t('logout')}

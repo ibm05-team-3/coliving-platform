@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import LocaleSwitch from '../../components/LocaleSwitch'
 import naverIcon from '../../assets/auth/naver-icon.png'
@@ -8,6 +9,15 @@ const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL
 
 function socialLoginUrl(registrationId) {
   return `${BACKEND_API_BASE_URL}/user-service/user/oauth2/authorization/${registrationId}`
+}
+
+function returnPath(from) {
+  const safe =
+    typeof from === 'string' &&
+    from.startsWith('/') &&
+    !from.startsWith('//') &&
+    !from.startsWith('/login')
+  return safe ? from : '/'
 }
 
 function GoogleMark() {
@@ -43,6 +53,8 @@ function TextField({ id, label, type, value, onChange, autoComplete }) {
 function LoginPage() {
   const { t, i18n } = useTranslation('login')
   const { t: tCommon } = useTranslation('common')
+  const navigate = useNavigate()
+  const location = useLocation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [result, setResult] = useState('')
@@ -63,6 +75,10 @@ function LoginPage() {
         body: JSON.stringify({ email, password }),
       })
       const body = await response.text()
+      if (response.ok) {
+        navigate(returnPath(location.state?.from), { replace: true })
+        return
+      }
       setResult(body ? `${response.status}\n${body}` : String(response.status))
     } catch (error) {
       setResult(error instanceof Error ? error.message : String(error))
