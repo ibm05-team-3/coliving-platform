@@ -1,0 +1,28 @@
+meta {
+  name: 5-3 공지 작성 (관리자, 건물 지정)
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/community-service/posts
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{adminId}}
+}
+
+body:json {
+  {
+    "category": "NOTICE",
+    "title": "10월 공용 라운지 정기 청소 안내",
+    "content": "10월 31일 오전 10시~오후 1시 라운지 청소가 있어요.",
+    "buildingId": {{buildingId}}
+  }
+}
+
+script:post-response {
+  if (res.status === 201) bru.setEnvVar("noticeId", res.body.postId);
+}

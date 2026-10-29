@@ -1,0 +1,23 @@
+meta {
+  name: 5-3 입주자가 공지 작성 → 403
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/community-service/posts
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}
+
+body:json {
+  {
+    "category": "NOTICE",
+    "title": "공지 흉내",
+    "content": "입주자는 공지를 쓸 수 없어요."
+  }
+}

@@ -1,0 +1,23 @@
+meta {
+  name: 5-3 후보자(6001) 글 작성 → 403 NOT_RESIDENT
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/community-service/posts
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{userId}}
+}
+
+body:json {
+  {
+    "category": "FREE",
+    "title": "후보자 글",
+    "content": "입주 전에는 커뮤니티를 못 써요."
+  }
+}
