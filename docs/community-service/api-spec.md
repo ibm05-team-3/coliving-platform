@@ -686,7 +686,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 | 항목 | 내용 |
 |---|---|
 | Method / URL | `POST /community-service/posts` |
-| 권한 | 입주자 (`NOTICE`는 관리자만) |
+| 권한 | 입주자 · 관리자 (`NOTICE`는 관리자만) |
 | 설명 | 건물 ID·작성자 ID는 서버가 토큰 기준으로 설정. 제재 중이면 403 SANCTIONED |
 
 **Request**
@@ -699,6 +699,9 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 | category | PostCategory | O | 카테고리 (입주자는 NOTICE 불가 → 403) |
 | title | String | O | 제목 (1~100자) |
 | content | String | O | 본문 (1~5,000자) |
+| buildingId | Long | △ | **관리자 공지 작성 시에만 필수** (입주자는 보내도 무시하고 입주 건물로 저장) |
+
+> 관리자는 `NOTICE`만 작성 가능, 공지는 자동으로 상단 고정(`pinned`)
 
 **Response 201**
 ```json

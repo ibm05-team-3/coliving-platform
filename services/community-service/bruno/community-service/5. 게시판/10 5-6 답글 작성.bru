@@ -1,0 +1,26 @@
+meta {
+  name: 5-6 답글 작성 (5001 → 5002 댓글)
+  type: http
+  seq: 10
+}
+
+post {
+  url: {{baseUrl}}/community-service/posts/{{postId}}/comments
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}
+
+body:json {
+  {
+    "content": "좋아요 :)",
+    "parentCommentId": {{commentId}}
+  }
+}
+
+script:post-response {
+  if (res.status === 201) bru.setEnvVar("replyId", res.body.commentId);
+}

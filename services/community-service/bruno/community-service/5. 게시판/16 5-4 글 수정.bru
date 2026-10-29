@@ -1,0 +1,23 @@
+meta {
+  name: 5-4 글 수정 (5001 본인)
+  type: http
+  seq: 16
+}
+
+put {
+  url: {{baseUrl}}/community-service/posts/{{postId}}
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}
+
+body:json {
+  {
+    "category": "MEETUP",
+    "title": "이번 주말 한강 피크닉 (시간 변경)",
+    "content": "토요일 오후 4시로 바꿨어요!"
+  }
+}

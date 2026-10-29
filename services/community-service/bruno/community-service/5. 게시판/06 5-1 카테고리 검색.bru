@@ -1,0 +1,15 @@
+meta {
+  name: 5-1 목록 — 자유 카테고리 + 검색어
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/community-service/posts?category=FREE&keyword=피크닉
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId2}}
+}

@@ -1,0 +1,21 @@
+meta {
+  name: 5-7 댓글 수정 (5002 본인)
+  type: http
+  seq: 13
+}
+
+put {
+  url: {{baseUrl}}/community-service/comments/{{commentId}}
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId2}}
+}
+
+body:json {
+  {
+    "content": "저도 갈게요! 돗자리 챙겨갈게요"
+  }
+}
