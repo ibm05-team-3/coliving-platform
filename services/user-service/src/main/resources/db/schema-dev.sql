@@ -23,12 +23,14 @@ CREATE TABLE users (
     updated_at           TIMESTAMP
 );
 
--- user_roles 테이블 (ElementCollection)
+-- 계정 역할. 비회원(GUEST)은 로그인하지 않은 방문자라 이 테이블에 넣지 않는다.
+-- USER 회원, CANDIDATE 후보자, RESIDENT 입주자, ADMIN 관리자
 CREATE TABLE user_roles (
     user_id   BIGINT NOT NULL,
     role      VARCHAR(255) NOT NULL,
     CONSTRAINT user_roles_pkey PRIMARY KEY (user_id, role),
-    CONSTRAINT fk_user_roles_user FOREIGN KEY (user_id) REFERENCES users (id)
+    CONSTRAINT fk_user_roles_user FOREIGN KEY (user_id) REFERENCES users (id),
+    CONSTRAINT user_roles_role_check CHECK (role IN ('USER', 'CANDIDATE', 'RESIDENT', 'ADMIN'))
 );
 
 -- user_email_accounts 테이블 (이메일 로그인, 사용자당 1행)

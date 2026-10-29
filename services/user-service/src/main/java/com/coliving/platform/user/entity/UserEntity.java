@@ -43,6 +43,7 @@ public class UserEntity extends BaseTimeEntity {
     @Builder.Default
     private boolean accountNonLocked = true;
 
+    // 계정 역할. GUEST는 비로그인 방문자라 저장하지 않는다.
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "user_roles",

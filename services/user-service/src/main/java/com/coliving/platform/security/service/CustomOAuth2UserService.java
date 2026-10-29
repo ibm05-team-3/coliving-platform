@@ -72,7 +72,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             Map<String, Object> attributes
     ) {
         UserEntity.UserEntityBuilder userBuilder = UserEntity.builder()
-                .roles(Set.of(Role.USER));
+                .roles(Set.of(Role.defaultAccountRole()));
         optionalText(attributes, "name").ifPresent(userBuilder::name);
         optionalText(attributes, "email").ifPresent(userBuilder::email);
         optionalText(attributes, "mobile").ifPresent(userBuilder::phone);
