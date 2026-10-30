@@ -1,0 +1,15 @@
+meta {
+  name: 9-1 처리 완료 목록 (status=RESOLVED)
+  type: http
+  seq: 20
+}
+
+get {
+  url: {{baseUrl}}/community-service/admin/reports?status=RESOLVED
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{adminId}}
+}

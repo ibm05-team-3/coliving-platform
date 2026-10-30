@@ -1,0 +1,15 @@
+meta {
+  name: 8-5 5003 내 이용 제한 — active true
+  type: http
+  seq: 15
+}
+
+get {
+  url: {{baseUrl}}/community-service/sanctions/me
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId3}}
+}

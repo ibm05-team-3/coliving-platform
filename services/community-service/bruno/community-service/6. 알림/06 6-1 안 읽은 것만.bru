@@ -1,0 +1,15 @@
+meta {
+  name: 6-1 안 읽은 알림만
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{baseUrl}}/community-service/notifications?unreadOnly=true
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}

@@ -1,0 +1,21 @@
+meta {
+  name: 9-5 다시 해제 → 409 SANCTION_ALREADY_REVOKED
+  type: http
+  seq: 23
+}
+
+patch {
+  url: {{baseUrl}}/community-service/admin/sanctions/{{sanctionId}}/revoke
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{adminId}}
+}
+
+body:json {
+  {
+    "revokeReason": "중복 해제"
+  }
+}

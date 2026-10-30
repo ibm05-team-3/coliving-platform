@@ -1,0 +1,25 @@
+meta {
+  name: 8-1 5002도 같은 댓글 신고 (HARASSMENT) 201
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/community-service/reports
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId2}}
+}
+
+body:json {
+  {
+    "sourceType": "POST",
+    "sourceId": {{otherPostId}},
+    "targetType": "COMMENT",
+    "targetId": "{{commentId}}",
+    "reasonType": "HARASSMENT"
+  }
+}

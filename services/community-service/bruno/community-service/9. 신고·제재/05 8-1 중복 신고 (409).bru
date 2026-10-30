@@ -1,0 +1,25 @@
+meta {
+  name: 8-1 5001 같은 댓글 다시 → 409 ALREADY_REPORTED
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/community-service/reports
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}
+
+body:json {
+  {
+    "sourceType": "POST",
+    "sourceId": {{otherPostId}},
+    "targetType": "COMMENT",
+    "targetId": "{{commentId}}",
+    "reasonType": "SPAM"
+  }
+}

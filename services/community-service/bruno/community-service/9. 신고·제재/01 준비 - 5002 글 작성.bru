@@ -1,0 +1,27 @@
+meta {
+  name: 준비: 5002 글 작성
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/community-service/posts
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId2}}
+}
+
+body:json {
+  {
+    "category": "FREE",
+    "title": "분리수거 요일 아시는 분?",
+    "content": "재활용은 무슨 요일인가요?"
+  }
+}
+
+script:post-response {
+  if (res.status === 201) bru.setEnvVar("otherPostId", res.body.postId);
+}

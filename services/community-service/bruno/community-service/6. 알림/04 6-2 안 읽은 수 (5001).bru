@@ -1,0 +1,15 @@
+meta {
+  name: 6-2 안 읽은 수 (5001) — note·notification 1 이상
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/community-service/notifications/unread-summary
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}

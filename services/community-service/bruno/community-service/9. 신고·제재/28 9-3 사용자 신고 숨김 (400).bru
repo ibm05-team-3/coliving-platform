@@ -1,0 +1,21 @@
+meta {
+  name: 9-3 사용자 신고에 숨김 → 400
+  type: http
+  seq: 28
+}
+
+post {
+  url: {{baseUrl}}/community-service/admin/reports/{{userReportId}}/actions
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{adminId}}
+}
+
+body:json {
+  {
+    "action": "HIDE_CONTENT"
+  }
+}

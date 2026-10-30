@@ -1,0 +1,25 @@
+meta {
+  name: 준비: 5003이 5002 글에 문제 댓글
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/community-service/posts/{{otherPostId}}/comments
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId3}}
+}
+
+body:json {
+  {
+    "content": "그런 것도 몰라요? 진짜 답답하네"
+  }
+}
+
+script:post-response {
+  if (res.status === 201) bru.setEnvVar("commentId", res.body.commentId);
+}
