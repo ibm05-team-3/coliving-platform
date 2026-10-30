@@ -5,14 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a1a9ead6-8e8e-467f-ad8f-c97297c949c1" name="변경" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/coliving-platform-config" beforeDir="false" afterPath="$PROJECT_DIR$/coliving-platform-config" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/services/contract-service.zip" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/services/contract-service/src/main/java/com/coliving/platform/contract/controller/ApplyMemberController.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/services/contract-service/src/main/java/com/coliving/platform/contract/service/UserQueryService.java" beforeDir="false" afterPath="$PROJECT_DIR$/services/contract-service/src/main/java/com/coliving/platform/contract/service/UserQueryService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/coliving-platform-config/contract-service.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/coliving-platform-config/contract-service.yaml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -95,6 +90,7 @@
     &quot;Gradle.config-server 빌드.executor&quot;: &quot;Run&quot;,
     &quot;Gradle.eureka-server [:com.coliving.platform.EurekaApplication.main()].executor&quot;: &quot;Run&quot;,
     &quot;Gradle.eureka-server 빌드.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.eureka-server.executor&quot;: &quot;Run&quot;,
     &quot;Gradle.user-service 빌드.executor&quot;: &quot;Run&quot;,
     &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
     &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
@@ -159,8 +155,8 @@
             <map>
               <entry key="ApiGatewayApplication" value="STOPPED" />
               <entry key="ConfigServerApplication" value="STOPPED" />
-              <entry key="ContractApplication" value="STOPPED" />
-              <entry key="EurekaApplication" value="STOPPED" />
+              <entry key="ContractApplication" value="FAILED" />
+              <entry key="EurekaApplication" value="FAILED" />
               <entry key="UserApplication" value="STOPPED" />
             </map>
           </value>
@@ -181,6 +177,29 @@
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
+    </configuration>
+    <configuration name="eureka-server" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/services/eureka-server" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list />
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <ExternalSystemDebugDisabled>false</ExternalSystemDebugDisabled>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <GradleProfilingDisabled>false</GradleProfilingDisabled>
+      <GradleCoverageDisabled>false</GradleCoverageDisabled>
+      <method v="2" />
     </configuration>
     <configuration name="ApiGatewayApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="api-gateway.main" />
@@ -260,6 +279,7 @@
       <list>
         <item itemvalue="Spring Boot.UserApplication" />
         <item itemvalue="Spring Boot.ConfigServerApplication" />
+        <item itemvalue="Gradle.eureka-server" />
         <item itemvalue="Application.EurekaApplication" />
       </list>
     </recent_temporary>
