@@ -310,8 +310,10 @@ function Header() {
     update()
     const observer = new ResizeObserver(update)
     observer.observe(header)
+    observer.observe(find)
+    observer.observe(utilities)
     return () => observer.disconnect()
-  }, [i18n.language, resident])
+  }, [i18n.language, resident, session.status, session.authenticated])
 
   return (
     <header ref={headerRef} className="border-b border-main/15">
