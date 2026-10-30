@@ -1,16 +1,30 @@
 package com.coliving.platform.notification.service;
 
+import com.coliving.platform.common.auth.ResidentGuard;
+import com.coliving.platform.common.dto.PageResponse;
 import com.coliving.platform.common.entity.SenderType;
+import com.coliving.platform.common.exception.CommunityException;
+import com.coliving.platform.common.exception.ErrorCode;
+import com.coliving.platform.note.entity.NoteThreadStatus;
+import com.coliving.platform.note.repository.NoteRepository;
+import com.coliving.platform.note.repository.NoteThreadRepository;
+import com.coliving.platform.notification.dto.NotificationItemDTO;
+import com.coliving.platform.notification.dto.UnreadSummaryDTO;
 import com.coliving.platform.notification.entity.NotificationEntity;
 import com.coliving.platform.notification.entity.NotificationTarget;
 import com.coliving.platform.notification.entity.NotificationType;
 import com.coliving.platform.notification.repository.NotificationRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * 알림 저장 (목록·읽음 API와 WebSocket 실시간 전송은 알림 기능 단계에서 추가)
+ * 알림 저장 · 조회 (API 6장)
+ * 관리자 알림은 지금 "관리자 전체 공용(0)"으로 저장 → 관리자는 0번 + 본인 ID 알림을 함께 봄
+ * TODO: WebSocket 실시간 전송은 COL-33(채팅)에서 추가, 30일 지난 알림 삭제 스케줄러는 추후
  */
 @Service
 @RequiredArgsConstructor
@@ -20,6 +34,11 @@ public class NotificationService {
 	public static final long ALL_ADMINS = 0L;
 
 	private final NotificationRepository notificationRepository;
+	private final NoteThreadRepository noteThreadRepository;
+	private final NoteRepository noteRepository;
+	private final ResidentGuard residentGuard;
+
+	// ---------- 저장 (다른 기능에서 호출) ----------
 
 	@Transactional
 	public void notifyUser(Long userId, NotificationType type, String title, String message,
@@ -33,5 +52,64 @@ public class NotificationService {
 			NotificationTarget targetType, Object targetId) {
 		notificationRepository.save(NotificationEntity.create(ALL_ADMINS, SenderType.ADMIN, type, title, message,
 				targetType, String.valueOf(targetId)));
+	}
+
+	// ---------- 조회 (API 6장) ----------
+
+	/** 6-1 알림 목록 (최신순) */
+	@Transactional(readOnly = true)
+	public PageResponse<NotificationItemDTO> getNotifications(Long userId, boolean unreadOnly, int page, int size) {
+		Receiver receiver = receiverOf(userId);
+		Page<NotificationEntity> result = notificationRepository.findForReceiver(
+				receiver.type(), receiver.ids(), unreadOnly, PageRequest.of(page, size));
+		List<NotificationItemDTO> content = result.getContent().stream()
+				.map(n -> new NotificationItemDTO(n.getId(), n.getType(), n.getTitle(), n.getMessage(),
+						n.getTargetType(), n.getTargetId(), n.isRead(), n.getCreatedAt()))
+				.toList();
+		return PageResponse.of(result, content);
+	}
+
+	/** 6-2 안 읽은 수 — 사용자: 안 읽은 받은 쪽지 / 관리자: 미답변 쪽지함 수 */
+	@Transactional(readOnly = true)
+	public UnreadSummaryDTO getUnreadSummary(Long userId) {
+		Receiver receiver = receiverOf(userId);
+		long note;
+		if (receiver.type() == SenderType.ADMIN) {
+			note = noteThreadRepository.countByStatus(NoteThreadStatus.UNANSWERED);
+		} else {
+			note = noteThreadRepository.findByUserId(userId)
+					.map(thread -> noteRepository.countByNoteThread_IdAndSenderTypeAndReadAtIsNull(thread.getId(), SenderType.ADMIN))
+					.orElse(0L);
+		}
+		long chat = 0;   // TODO(COL-33): 안 읽은 채팅 수
+		long notification = notificationRepository.countUnread(receiver.type(), receiver.ids());
+		return new UnreadSummaryDTO(note, chat, notification, note + chat);
+	}
+
+	/** 6-3 알림 하나 읽음 (본인 알림만) */
+	@Transactional
+	public void markRead(Long userId, Long notificationId) {
+		Receiver receiver = receiverOf(userId);
+		NotificationEntity notification = notificationRepository.findById(notificationId)
+				.filter(n -> n.getReceiverType() == receiver.type() && receiver.ids().contains(n.getReceiverId()))
+				.orElseThrow(() -> new CommunityException(ErrorCode.NOTIFICATION_NOT_FOUND));
+		notification.markRead();
+	}
+
+	/** 6-4 모두 읽음 */
+	@Transactional
+	public void markAllRead(Long userId) {
+		Receiver receiver = receiverOf(userId);
+		notificationRepository.markAllRead(receiver.type(), receiver.ids());
+	}
+
+	private Receiver receiverOf(Long userId) {
+		if (residentGuard.isAdmin(userId)) {
+			return new Receiver(SenderType.ADMIN, List.of(ALL_ADMINS, userId));
+		}
+		return new Receiver(SenderType.USER, List.of(userId));
+	}
+
+	private record Receiver(SenderType type, List<Long> ids) {
 	}
 }

@@ -1,0 +1,22 @@
+meta {
+  name: 준비: 관리자 → 5001 쪽지 (알림 + 안 읽은 쪽지)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/community-service/admin/notes
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{adminId}}
+}
+
+body:json {
+  {
+    "recipientUserId": {{residentId}},
+    "content": "택배 보관함 위치 안내드려요."
+  }
+}

@@ -1,0 +1,22 @@
+meta {
+  name: 9-3 경고 200
+  type: http
+  seq: 29
+}
+
+post {
+  url: {{baseUrl}}/community-service/admin/reports/{{userReportId}}/actions
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{adminId}}
+}
+
+body:json {
+  {
+    "action": "WARNING",
+    "reason": "공용 공간 소음 주의"
+  }
+}

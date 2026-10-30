@@ -2,6 +2,7 @@ package com.coliving.dashboard.kafka.consumer;
 
 import com.coliving.dashboard.activitylog.service.ActivityLogService;
 import com.coliving.dashboard.kafka.dto.PaymentCompletedEvent;
+import com.coliving.dashboard.snapshot.service.DashboardSnapshotService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -16,14 +17,18 @@ public class PaymentConsumer {
 
     private final JsonMapper jsonMapper;
     private final ActivityLogService activityLogService;
+    private final DashboardSnapshotService snapshotService;
 
     /** JSON 문자열로 받아 이벤트 객체로 변환한다. 처리에 실패해도 로그만 남기고 다음 메시지로 넘어간다. */
     @KafkaListener(topics = "payment.completed")
     public void consume(String message) {
         try {
-            PaymentCompletedEvent event =
-                    jsonMapper.readValue(message, PaymentCompletedEvent.class);
+            PaymentCompletedEvent event = jsonMapper.readValue(message, PaymentCompletedEvent.class);
+            boolean firstTime = !activityLogService.existsPayment(event.paymentId());
             activityLogService.savePaymentActivity(event);
+            if (firstTime) {
+                snapshotService.addPayment(event.buildingId(), event.buildingName(), event.amount());
+            }
         } catch (Exception e) {
             log.error("결제 완료 이벤트 처리 실패: {}", message, e);
         }

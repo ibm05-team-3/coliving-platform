@@ -1,18 +1,14 @@
 -- user-service DB 초기화 스크립트
+--DROP DATABASE IF EXISTS user_service;
+--CREATE DATABASE user_service ENCODING 'UTF8';
+--
+--\c user_service;
 
-DROP DATABASE IF EXISTS user_service;
-CREATE DATABASE user_service ENCODING 'UTF8';
-
-\c user_service;
 
 -- users 테이블. email은 연락처이며 비어 있을 수 있다.
 DROP TABLE IF EXISTS user_roles CASCADE;
-<<<<<<< HEAD
-DROP TABLE IF EXISTS user_social_accounts CASCADE;file:/C:/DEV/coliving-platform/services/contract-service/src/main/resources/db/schma-dev-contract-service.sql
-=======
 DROP TABLE IF EXISTS user_social_accounts CASCADE;
 DROP TABLE IF EXISTS user_email_accounts CASCADE;
->>>>>>> dev
 DROP TABLE IF EXISTS users CASCADE;
 
 CREATE TABLE users (

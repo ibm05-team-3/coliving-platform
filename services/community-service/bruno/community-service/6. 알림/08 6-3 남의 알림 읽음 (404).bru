@@ -1,0 +1,15 @@
+meta {
+  name: 6-3 남의 알림 읽음 → 404 NOTIFICATION_NOT_FOUND
+  type: http
+  seq: 8
+}
+
+patch {
+  url: {{baseUrl}}/community-service/notifications/{{notificationId}}/read
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId2}}
+}

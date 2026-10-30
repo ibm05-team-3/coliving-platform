@@ -1,0 +1,15 @@
+meta {
+  name: 9-1 신고 목록 (관리자) — 1줄, reportCount 2
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{baseUrl}}/community-service/admin/reports
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{adminId}}
+}

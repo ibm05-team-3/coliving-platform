@@ -1,0 +1,15 @@
+meta {
+  name: 6-2 다시 — notification 0 (note는 쪽지를 읽어야 0)
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{baseUrl}}/community-service/notifications/unread-summary
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}

@@ -338,10 +338,10 @@ GET activity-log/_count
 
 | 서비스 | 방법 | 주소 |
 |---|---|---|
-| dashboard-service | IntelliJ에서 `DashboardServiceApplication` 실행 (Kafka, ES가 떠 있어야 함) | `localhost:8085` |
+| dashboard-service | IntelliJ에서 `DashboardServiceApplication` 실행 (Kafka, ES가 떠 있어야 함) | `localhost:8086` |
 | admin-web | `frontends/admin-web`에서 `npm run dev` | `localhost:3000` |
 
-- admin-web은 `/api/dashboard/**` 요청을 `localhost:8085`로 전달합니다 (`vite.config.js`의 proxy).
+- admin-web은 `/api/dashboard/**` 요청을 `localhost:8086`로 전달합니다 (`vite.config.js`의 proxy).
 - Kafka 토픽(`contract.status-changed`, `payment.completed`, `reservation.status-changed`)이 아직 없으면 서비스 시작 시 경고 로그가 나올 수 있으나, 메시지를 처음 받을 때 생성되므로 무시해도 됩니다.
 
 ## 4. 더미 데이터 지우기

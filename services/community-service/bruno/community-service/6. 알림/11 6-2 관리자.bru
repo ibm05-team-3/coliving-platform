@@ -1,0 +1,15 @@
+meta {
+  name: 6-2 관리자 — note = 미답변 쪽지함 수
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{baseUrl}}/community-service/notifications/unread-summary
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{adminId}}
+}

@@ -1,0 +1,15 @@
+meta {
+  name: 5-1 목록 (5001) — 5002 글이 다시 보여야 함
+  type: http
+  seq: 14
+}
+
+get {
+  url: {{baseUrl}}/community-service/posts
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}

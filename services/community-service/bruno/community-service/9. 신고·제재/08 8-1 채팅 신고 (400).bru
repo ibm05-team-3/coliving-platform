@@ -1,0 +1,25 @@
+meta {
+  name: 8-1 채팅 메시지 신고 → 400 (COL-33 이후)
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/community-service/reports
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}
+
+body:json {
+  {
+    "sourceType": "CHAT_ROOM",
+    "sourceId": 1,
+    "targetType": "CHAT_MESSAGE",
+    "targetId": "6712f0a1c3e5b2a1f0000001",
+    "reasonType": "ABUSE"
+  }
+}
