@@ -23,5 +23,5 @@ spring:
 
 auth:
   access-token-issuer: user-service
-  access-token-key-id: es256-2026
+  access-token-key-id: es256-demo
   access-token-public: ${JWT_SECRET:-----BEGIN PUBLIC KEY-----MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE7wOxzOM9xtHw9RvbS19kvJeoioQxiI9vA5BfCEUAkO4bzjy+ODGws6oL7Vv6Dv0YXGdwLqmIkrn6RKujHYoH7g==-----END PUBLIC KEY-----}

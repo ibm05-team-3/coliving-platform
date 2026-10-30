@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { NavLink, useLocation, useNavigate } from 'react-router'
 import LocaleSwitch from './LocaleSwitch'
 import { isResident } from '../resident'
-import { useSession } from '../session'
+import { logout, useSession } from '../session'
+import { Avatar } from '../features/community/components'
 import { NotificationPanel } from '../features/community/components/NotificationPanel'
 import { useSupportWidget } from '../features/community/components/SupportWidgetContext'
 
@@ -163,13 +164,13 @@ function NotificationMenu() {
   )
 }
 
-function MyMenu() {
+function MyMenu({ nickname }) {
   const { t } = useTranslation('common')
   const navigate = useNavigate()
   const location = useLocation()
   const [open, setOpen] = useState(false)
+  const [loggingOut, setLoggingOut] = useState(false)
   const rootRef = useRef(null)
-  const sectionActive = location.pathname.startsWith('/my')
 
   useEffect(() => {
     setOpen(false)
@@ -201,11 +202,10 @@ function MyMenu() {
         aria-expanded={open}
         aria-controls="my-menu"
         onClick={() => setOpen((value) => !value)}
-        className={`grid h-9 w-9 place-items-center rounded-full text-xs font-semibold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${
-          open || sectionActive ? 'bg-main text-background' : 'bg-main/15 text-main hover:bg-main/25'
-        }`}
+        aria-label={typeof nickname === 'string' && nickname.trim() ? nickname.trim() : 'MY'}
+        className="rounded-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
       >
-        MY
+        <Avatar name={typeof nickname === 'string' && nickname.trim() ? nickname.trim() : 'MY'} size="sm" />
       </button>
       {open && (
         <div
@@ -228,12 +228,14 @@ function MyMenu() {
           ))}
           <button
             type="button"
-            onClick={() =>
-              navigate('/login', {
-                state: { from: `${location.pathname}${location.search}` },
-              })
-            }
-            className="rounded-lg px-3 py-2 text-left text-sm font-medium whitespace-nowrap text-text hover:bg-main/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            disabled={loggingOut}
+            onClick={() => {
+              setLoggingOut(true)
+              logout()
+                .then(() => navigate('/login', { replace: true }))
+                .catch(() => setLoggingOut(false))
+            }}
+            className="rounded-lg px-3 py-2 text-left text-sm font-medium whitespace-nowrap text-text hover:bg-main/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-60"
           >
             {t('logout')}
           </button>
@@ -347,7 +349,7 @@ function Header() {
           >
             <LanguageMenu />
             <NotificationMenu />
-            {session.status === 'ready' && (session.authenticated ? <MyMenu /> : <AuthButtons />)}
+            {session.status === 'ready' && (session.authenticated ? <MyMenu nickname={session.nickname} /> : <AuthButtons />)}
           </div>
         </nav>
       </div>

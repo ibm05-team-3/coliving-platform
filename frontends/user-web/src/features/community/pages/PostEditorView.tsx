@@ -8,7 +8,7 @@ import { CommunityRestricted } from "../components/CommunityRestricted"
 import { ReportModal } from "../components/ReportModal"
 import { SanctionBanner } from "../components/SanctionBanner"
 import { useMySanction } from "../components/useMySanction"
-import { useCurrentUser } from "../currentUser"
+import { communityDisplayName, useCurrentUser } from "../currentUser"
 import type { CommunityComment, CommunityPostDetail, CommunityPostRequest, CommunityReply, ReportSourceType, ReportTargetType } from "../types"
 
 export type PostEditorMode = "view" | "create" | "edit"
@@ -116,7 +116,7 @@ export default function PostEditorView({ mode, title }: { mode: PostEditorMode; 
     event.preventDefault();
     if (!form.title.trim() || !form.content.trim() || sanction.active) return;
     if (mode === "create") {
-      const result = await createCommunityPost(form);
+      const result = await createCommunityPost(form, user.name || null);
       navigate(`/community/posts/${result.postId}`)
     } else {
       await updateCommunityPost(numericPostId, form);
@@ -268,7 +268,7 @@ export default function PostEditorView({ mode, title }: { mode: PostEditorMode; 
             sourceId: post!.postId,
             targetType: "COMMENT",
             targetId: String(item.commentId),
-            targetName: item.authorName ?? t("common.user"),
+            targetName: communityDisplayName(item.authorName, t("common.anonymous")),
             targetUserId: item.authorId!
           })}
           className="focus-visible:outline-2 focus-visible:outline-accent"
@@ -453,7 +453,7 @@ export default function PostEditorView({ mode, title }: { mode: PostEditorMode; 
                 sourceId: post!.postId,
                 targetType: "POST",
                 targetId: String(post!.postId),
-                targetName: post!.authorName,
+                targetName: communityDisplayName(post!.authorName, t("common.anonymous")),
                 targetUserId: post!.authorId!
               })}
               className="flex w-full items-center gap-2 rounded px-3 py-2 text-sm hover:bg-background"
@@ -465,7 +465,7 @@ export default function PostEditorView({ mode, title }: { mode: PostEditorMode; 
               {t("post.reportPost")}
             </button>
             <button
-              onClick={() => handleRequestBlock(post!.authorId!, post!.authorName, "post")}
+              onClick={() => handleRequestBlock(post!.authorId!, communityDisplayName(post!.authorName, t("common.anonymous")), "post")}
               className="flex w-full items-center gap-2 rounded px-3 py-2 text-sm hover:bg-background"
             >
               <Icon
@@ -480,7 +480,7 @@ export default function PostEditorView({ mode, title }: { mode: PostEditorMode; 
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-b border-main/15 pb-5">
         <Author
           authorId={post!.authorId}
-          name={post!.authorName}
+          name={communityDisplayName(post!.authorName, t("common.anonymous"))}
           room={post!.authorRoomNumber}
           popupKey="post"
           open={profile}
@@ -771,16 +771,19 @@ function Comment({ item, body, profile, onProfileChange, onChat, onBlock, disabl
   currentUserId: number;
   locale: string
 }) {
+  const { t } = useTranslation("community")
+  const visible = item.status !== "DELETED" && !item.blocked
+  const label = visible ? communityDisplayName(item.authorName, t("common.anonymous")) : item.authorName
   return <div className="flex gap-3">
-    {item.status !== "DELETED" && !item.blocked && <Avatar
-      name={item.authorName ?? ""}
+    {visible && <Avatar
+      name={label ?? ""}
       size="sm"
     />}
     <div className="min-w-0 flex-1">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <Author
           authorId={item.authorId}
-          name={item.authorName}
+          name={label}
           room={item.authorRoomNumber}
           popupKey={`comment-${item.commentId}`}
           open={profile}

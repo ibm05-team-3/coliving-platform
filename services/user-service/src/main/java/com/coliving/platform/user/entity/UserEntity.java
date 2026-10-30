@@ -21,9 +21,12 @@ public class UserEntity extends BaseTimeEntity {
     // 연락처. 비어 있을 수 있고 로그인 식별자로 쓰지 않는다.
     private String email;
 
-    @Column(nullable = false, length = 100)
-    @Builder.Default
-    private String name = "MY";
+    @Column(length = 100)
+    private String name;
+
+    // 커뮤니티와 헤더에 보여주는 이름. 비어 있을 수 있다.
+    @Column(length = 100)
+    private String nickname;
 
     private String phone;
 
