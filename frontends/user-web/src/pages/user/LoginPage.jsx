@@ -109,6 +109,9 @@ function LoginPage() {
             <h2 className="text-xl font-semibold text-main sm:text-2xl">{t('title')}</h2>
             <LocaleSwitch />
           </div>
+          {location.state?.signedUp === true && (
+            <p className="text-sm text-text">{t('signedUp')}</p>
+          )}
           <TextField
             id="email"
             label={t('email')}
@@ -125,13 +128,24 @@ function LoginPage() {
             value={password}
             onChange={(event) => setPassword(event.target.value)}
           />
-          <button
-            type="submit"
-            disabled={submitting}
-            className="mt-1 rounded-lg bg-main px-4 py-3 text-sm font-semibold text-background hover:bg-main/90 disabled:opacity-60 sm:text-base"
-          >
-            {submitting ? t('submitting') : t('submit')}
-          </button>
+          <div className="mt-1 grid gap-2">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="rounded-lg bg-main px-4 py-3 text-sm font-semibold text-background hover:bg-main/90 disabled:opacity-60 sm:text-base"
+            >
+              {submitting ? t('submitting') : t('submit')}
+            </button>
+            <p className="flex flex-wrap items-baseline justify-center gap-x-1.5 text-sm text-text/70">
+              <span>{t('noAccount')}</span>
+              <Link
+                to="/signup"
+                className="font-semibold text-main focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+              >
+                {tCommon('signup')}
+              </Link>
+            </p>
+          </div>
           <div className="flex items-center gap-3">
             <span className="h-px flex-1 bg-main/20" />
             <span className="text-sm text-text/70">{t('or')}</span>

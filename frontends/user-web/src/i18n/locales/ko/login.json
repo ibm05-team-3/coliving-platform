@@ -9,5 +9,7 @@
   "submitting": "로그인 중",
   "or": "또는",
   "googleSignIn": "Google로 로그인",
-  "naverSignIn": "네이버 로그인"
+  "naverSignIn": "네이버 로그인",
+  "signedUp": "가입되었습니다. 로그인해 주세요.",
+  "noAccount": "계정이 없으신가요?"
 }

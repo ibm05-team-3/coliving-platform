@@ -9,6 +9,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,7 +18,10 @@ import lombok.ToString;
 
 @ToString
 @Entity
-@Table(name = "user_email_accounts")
+@Table(
+        name = "user_email_accounts",
+        uniqueConstraints = @UniqueConstraint(name = "uk_user_email_accounts_email", columnNames = "email")
+)
 @Getter
 @Builder
 @NoArgsConstructor
@@ -32,7 +36,7 @@ public class UserEmailAccountEntity extends BaseTimeEntity {
     @JoinColumn(name = "user_id")
     private UserEntity user;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     private String email;
 
     @ToString.Exclude

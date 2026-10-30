@@ -9,5 +9,7 @@
   "submitting": "Signing in",
   "or": "or",
   "googleSignIn": "Sign in with Google",
-  "naverSignIn": "Log in with NAVER"
+  "naverSignIn": "Log in with NAVER",
+  "signedUp": "Your account is ready. Log in to continue.",
+  "noAccount": "Don't have an account?"
 }
