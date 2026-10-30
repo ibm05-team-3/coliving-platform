@@ -171,7 +171,7 @@ configs:
         - job_name: spring-services
           metrics_path: /actuator/prometheus
           static_configs:
-            - targets: ['host.docker.internal:8085']
+            - targets: ['host.docker.internal:8086']
               labels:
                 service: dashboard-service
 
