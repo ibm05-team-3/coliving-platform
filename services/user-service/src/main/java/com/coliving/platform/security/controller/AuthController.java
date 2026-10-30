@@ -4,6 +4,7 @@ import com.coliving.platform.security.dto.AccessTokenResponse;
 import com.coliving.platform.security.dto.SessionResponseDTO;
 import com.coliving.platform.security.http.SessionCookieFactory;
 import com.coliving.platform.security.service.AuthService;
+import com.coliving.platform.user.entity.Role;
 import com.coliving.platform.user.repository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Optional;
+import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
@@ -43,6 +45,30 @@ public class AuthController {
         }
         return userRepository.findById(id)
                 .map(user -> new SessionResponseDTO(true, userId, blankToNull(user.getNickname())));
+    }
+
+    @GetMapping("/admin/session")
+    public ResponseEntity<Void> adminSession(HttpServletRequest request) {
+        Optional<Set<Role>> roles = sessionCookieFactory.read(request)
+                .flatMap(authService::sessionSubject)
+                .flatMap(this::accountRoles);
+        if (roles.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        if (!roles.get().contains(Role.ADMIN)) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+        return ResponseEntity.noContent().build();
+    }
+
+    private Optional<Set<Role>> accountRoles(String userId) {
+        long id;
+        try {
+            id = Long.parseLong(userId);
+        } catch (NumberFormatException ex) {
+            return Optional.empty();
+        }
+        return userRepository.findById(id).map(user -> user.getRoles() == null ? Set.of() : user.getRoles());
     }
 
     private static String blankToNull(String value) {
