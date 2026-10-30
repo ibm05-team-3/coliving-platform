@@ -6,7 +6,7 @@ import { Avatar, Badge, Button, Icon, PageHeader, SearchField } from "../compone
 import { CommunityRestricted } from "../components/CommunityRestricted"
 import { SanctionBanner } from "../components/SanctionBanner"
 import { useMySanction } from "../components/useMySanction"
-import { useCurrentUser } from "../currentUser"
+import { communityDisplayName, useCurrentUser } from "../currentUser"
 import type { CommunityPostListResponse, PostCategory } from "../types"
 
 const CATEGORIES: (PostCategory | undefined)[] = [
@@ -109,7 +109,7 @@ export default function CommunityPage({ title }: { title: string }) {
                 {post.title}
               </strong>
               <small className="text-text/70">
-                {post.authorName}
+                {communityDisplayName(post.authorName, t("common.anonymous"))}
                 ·
                 {displayDate(post.createdAt, i18n.resolvedLanguage ?? i18n.language)}
               </small>
@@ -144,7 +144,7 @@ export default function CommunityPage({ title }: { title: string }) {
                 {post.isNew && <i className="rounded bg-accent px-1.5 py-0.5 text-[10px] not-italic text-text">N</i>}
               </strong>
               <span className="mt-1 flex items-center gap-2 text-xs text-text/70">
-                {post.authorName}
+                {communityDisplayName(post.authorName, t("common.anonymous"))}
                 <Badge type="accent">
                   {post.authorRoomNumber}
                 </Badge>

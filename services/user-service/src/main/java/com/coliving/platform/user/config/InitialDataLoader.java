@@ -31,7 +31,6 @@ public class InitialDataLoader implements CommandLineRunner {
             return;
         }
         UserEntity member = memberRepository.save(UserEntity.builder()
-                .name("admin")
                 .email("admin@naver.com")
                 .roles(Set.of(Role.ADMIN))
                 .build());

@@ -2,6 +2,7 @@ package com.coliving.platform.security.handler;
 
 import com.coliving.platform.common.config.AppProperties;
 import com.coliving.platform.security.http.SessionCookieFactory;
+import com.coliving.platform.security.oauth.SocialReturnPath;
 import com.coliving.platform.security.service.AuthService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -29,6 +30,6 @@ public class SocialSuccessHandler implements AuthenticationSuccessHandler {
         String sessionId = authService.openSession(sub);
 
         response.addHeader(HttpHeaders.SET_COOKIE, sessionCookieFactory.write(sessionId).toString());
-        response.sendRedirect(appProperties.frontend().url());
+        response.sendRedirect(SocialReturnPath.redirect(appProperties.frontend().url(), request));
     }
 }

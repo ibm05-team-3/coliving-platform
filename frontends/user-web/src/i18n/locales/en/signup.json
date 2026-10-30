@@ -1,0 +1,22 @@
+{
+  "documentTitle": "Sign up",
+  "headline": "A home you share",
+  "description": "Create your Roomlink account with email.",
+  "title": "Sign up",
+  "email": "Email",
+  "password": "Password",
+  "passwordConfirm": "Confirm password",
+  "passwordMismatch": "Passwords do not match.",
+  "submit": "Sign up",
+  "submitting": "Creating account",
+  "or": "or",
+  "googleSignIn": "Sign in with Google",
+  "naverSignIn": "Log in with NAVER",
+  "emailTaken": "This email is already registered.",
+  "hasAccount": "Already have an account?",
+  "failed": "Sign-up failed.",
+  "checkEmailDocumentTitle": "Check your email",
+  "checkEmailTitle": "Check your email",
+  "checkEmailBody": "We sent an email to {{email}}. Please check your inbox.",
+  "checkEmailHint": "If you do not see it, look in your spam folder."
+}

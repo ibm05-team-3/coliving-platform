@@ -5,6 +5,11 @@
   "title": "Log in",
   "email": "Email",
   "password": "Password",
+  "forgotPassword": "Forgot your password?",
   "submit": "Log in",
-  "submitting": "Signing in"
+  "submitting": "Signing in",
+  "or": "or",
+  "googleSignIn": "Sign in with Google",
+  "naverSignIn": "Log in with NAVER",
+  "noAccount": "Don't have an account?"
 }
