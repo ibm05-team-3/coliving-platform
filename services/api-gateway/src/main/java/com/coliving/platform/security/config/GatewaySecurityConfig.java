@@ -64,14 +64,13 @@ public class GatewaySecurityConfig {
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .pathMatchers(
                                 "/user-service/user/login",
+                                "/user-service/user/signup",
                                 "/user-service/user/oauth2/authorization/**",
                                 "/user-service/user/oauth2/code/**",
-                                "/user-service/user/logout",
-                                "/user-service/user/create",
-                                "/user-service/user/exists/*"
+                                "/user-service/user/logout"
                         ).permitAll()
                         .pathMatchers("/*/admin/**").hasRole("ADMIN")
-                        .anyExchange().permitAll()
+                        .anyExchange().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2
                         .jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter()))
