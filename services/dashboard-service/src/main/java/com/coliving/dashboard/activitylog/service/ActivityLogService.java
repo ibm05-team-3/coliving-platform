@@ -153,4 +153,9 @@ public class ActivityLogService {
             log.info("이미 같거나 더 최신인 활동 로그가 있어 무시합니다: id={}", id);
         }
     }
+
+    /** 이미 활동 로그가 있는 결제인지 확인한다. */
+    public boolean existsPayment(Long paymentId) {
+        return repository.existsById("PAYMENT-" + paymentId);
+    }
 }
