@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/internel/apply")
+@RequestMapping("/apply/room")   // gateway: /contract-service/apply/rooms/**
 public class ApplyRoomController {
 
     private final ApplyRoomService applyRoomService;
@@ -17,7 +17,7 @@ public class ApplyRoomController {
     public ApplyRoomController(ApplyRoomService applyRoomService) {
         this.applyRoomService = applyRoomService;
     }
-        @GetMapping("/room/{roomId}")
+        @GetMapping("/{roomId}")
         public RoomApplyResponse getRoom (@PathVariable Long roomId){
 
             return applyRoomService.getRoomForApply(roomId);

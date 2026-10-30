@@ -2,8 +2,9 @@ import { createContext, useContext, useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { moveOutDate } from '../lib/format';
 
-// 화면 확인용 목업. 필드 이름은 RoomApplyResponse와 맞춤
-// (GET /contract-service/apply/rooms/{roomId} 연결 시 이 값을 응답으로 교체)
+// 목업 호실. 필드 이름은 RoomApplyResponse와 맞춤
+// - 1-1 화면은 lib/api.js의 getRoom()으로 실제 응답을 받아 setRoom으로 교체한다
+// - 1-1을 거치지 않고 들어온 나머지 화면은 아직 이 값을 쓴다 (신청 조회 API 연결 전)
 export const ROOM = {
   roomId: 1,
   buildingName: '[건물명]',
@@ -15,7 +16,7 @@ export const ROOM = {
   area: 13.5,
   floorNumber: 3,
   monthlyFee: 780000,
-  managementFee: 50000, // ⚠ RoomApplyResponse에 managementFee 추가 필요
+  managementFee: 50000,
   deposit: 1000000,
   available: true,
 };
@@ -34,18 +35,20 @@ const ApplyContext = createContext(null);
 export function ApplyProvider({ children }) {
   const [moveIn, setMoveIn] = useState(new Date(2026, 10, 2));
   const [months, setMonths] = useState(6);
+  const [room, setRoom] = useState(ROOM);
 
   const value = useMemo(
     () => ({
-      room: ROOM,
+      room,
+      setRoom,
       moveIn,
       setMoveIn,
       months,
       setMonths,
       moveOut: moveOutDate(moveIn, months),
-      firstPayment: firstPaymentOf(ROOM),
+      firstPayment: firstPaymentOf(room),
     }),
-    [moveIn, months],
+    [moveIn, months, room],
   );
 
   return <ApplyContext.Provider value={value}>{children}</ApplyContext.Provider>;

@@ -4,7 +4,7 @@ DROP DATABASE IF EXISTS contract_service;
 CREATE DATABASE contract_service ENCODING 'UTF8';
 
 CREATE EXTENSION IF NOT EXISTS btree_gist;
- ALTER TABLE contract_signature DROP COLUMN signer_ip;
+ --ALTER TABLE contract_signature DROP COLUMN signer_ip;
 --0. 신청번호 생성
 CREATE SEQUENCE application_no_seq;
 -- 1. 신청(계약) 본체: 신청 = 계약 1:1, DRAFT부터 COMPLETED까지 한 행
@@ -13,8 +13,17 @@ CREATE TABLE contract_application (
     application_no     VARCHAR(30)  NOT NULL UNIQUE,      -- 화면 표시용 신청번호
     member_id          BIGINT       NOT NULL,             -- 멤버 서비스 회원 ID (JWT에서 꺼냄)
     room_id            BIGINT       NOT NULL,             -- 호실 서비스 ID, 다른 서비스라 FK 없음
+    building_id        BIGINT       NOT NULL,             -- 건물 ID (매물 서비스, FK 없음)
     building_name      VARCHAR(100) NOT NULL,             -- 건물명 스냅샷 (DRAFT 때 호실 서비스에서 복사, 호실 바꾸면 갱신)
+    region             VARCHAR(100) NOT NULL,             -- "서울 성동구"
+    address            VARCHAR(500) NOT NULL,             -- 건물 주소 (신청자 주소는 applicant_address)
     room_name          VARCHAR(100) NOT NULL,             -- 호실명 스냅샷
+    room_type          VARCHAR(255) NOT NULL,             -- "1인실"
+    room_structure     VARCHAR(100),                      -- 매물 쪽에 없을 수 있음
+    floor_number       INTEGER      NOT NULL,
+    area               NUMERIC(10,2) NOT NULL,            -- ㎡
+    room_facilities    TEXT         NOT NULL,             -- "전용 욕실, 발코니"
+    building_facilities TEXT        NOT NULL,             -- "공용 라운지, 세탁실"
     move_in_date       DATE         NOT NULL,
     move_out_date      DATE         NOT NULL,             -- 퇴실 예정일
     stay_period        DATERANGE    GENERATED ALWAYS AS
@@ -27,6 +36,7 @@ CREATE TABLE contract_application (
     -- 금액 스냅샷: DRAFT 동안 재계산, SUBMITTED에서 고정 (재신청은 새 신청이라 그 시점 가격)
     monthly_fee        BIGINT       NOT NULL,
     deposit            BIGINT       NOT NULL,
+    management_fee     BIGINT       NOT NULL,             -- 관리비 (월)
     discount_amount    BIGINT       NOT NULL DEFAULT 0,
     discount_note      VARCHAR(200),
     first_payment      BIGINT       NOT NULL,             -- 첫 달 이용료 + 보증금 - 할인
@@ -72,11 +82,22 @@ CREATE TABLE contract_status_history (
 CREATE INDEX idx_hist_app ON contract_status_history (application_id, created_at);
 
 
+-- 2-1. 계약서: 관리자 승인 시 문서 서비스 양식 + 신청서 스냅샷으로 생성, 이후 수정하지 않음
+CREATE TABLE contract_document (
+   id                BIGSERIAL    PRIMARY KEY,
+   application_id    BIGINT       NOT NULL UNIQUE REFERENCES contract_application(id), -- 신청 1 : 계약서 1
+   language          VARCHAR(10)  NOT NULL,             -- ko, en (신청서의 contract_language)
+   template_id       BIGINT       NOT NULL,             -- 문서 서비스 양식 ID (FK 없음)
+   template_version  INTEGER      NOT NULL,             -- 어떤 버전 양식으로 만들었는지
+   content           TEXT         NOT NULL,             -- 완성된 계약서 본문
+   content_hash      CHAR(64)     NOT NULL,             -- content의 SHA-256 (서명 때 비교)
+   created_at        TIMESTAMPTZ  NOT NULL DEFAULT now()
+);
 -- 3. 본인인증·전자서명: 문서 담당이 준 문서 ID와 해시를 서명 시점 값으로 보관
 CREATE TABLE contract_signature (
     id                        BIGSERIAL    PRIMARY KEY,
     application_id            BIGINT       NOT NULL REFERENCES contract_application(id),
-    document_id               BIGINT       NOT NULL,             -- 문서 담당 쪽 문서 ID (FK 없음)
+    document_id               BIGINT       NOT NULL REFERENCES contract_document(id), -- 서명한 계약서
     identity_verification_id  VARCHAR(100) NOT NULL UNIQUE,      -- 포트원 인증 거래 ID, 1회만 사용
     verified_name             VARCHAR(255),                      -- 암호화 저장
     document_hash             CHAR(64)     NOT NULL,             -- 서명 시점의 문서 SHA-256
@@ -154,3 +175,9 @@ CREATE TABLE payment_receipt (
     issued_at     TIMESTAMPTZ  NOT NULL DEFAULT now(),
     UNIQUE (payment_id, receipt_type)
 );
+
+  SELECT 'seq' FROM pg_sequences WHERE sequencename = 'application_no_seq'
+   UNION ALL SELECT conname FROM pg_constraint
+   WHERE conrelid = 'contract_application'::regclass AND conname IN ('no_overlap_booking','chk_terms_agreed');
+  
+

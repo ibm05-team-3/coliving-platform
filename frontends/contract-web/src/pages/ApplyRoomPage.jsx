@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import AmountBox from '../components/AmountBox';
 import Badge from '../components/Badge';
@@ -7,28 +8,99 @@ import Card from '../components/Card';
 import InfoList from '../components/InfoList';
 import PageShell from '../components/PageShell';
 import Section from '../components/Section';
+import StatusMessage from '../components/StatusMessage';
 import StepNav from '../components/StepNav';
-import { MOCK_APPLICATION_NO, PERIODS, useApply } from '../context/ApplyContext';
-import { amountRows, roomSpec, won, ymdDay } from '../lib/format';
+import { PERIODS, ROOM, useApply } from '../context/ApplyContext';
+import { createApplication, getRoom } from '../lib/api';
+import { amountRows, roomSpec, won, ymd, ymdDay } from '../lib/format';
 
 export default function ApplyRoomPage() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const a = useApply();
   const r = a.room;
+  const { setRoom } = a;
 
-  // ?roomId=1 : 호실 상세에서 넘어온 값 → GET /contract-service/internel/apply/rooms/{roomId}
-  // ?applicationNo=... : 신청자 정보에서 "이전"으로 돌아온 경우 → 기존 DRAFT를 수정
-  const roomId = params.get('roomId') ?? r.roomId; // POST body의 roomId
-  const draftNo = params.get('applicationNo');
+  // ?roomId=1 : 호실 상세에서 넘어온 값 → GET /contract-service/internel/apply/room/{roomId} (lib/api.js ROOM_PATH)
+  // ?applicationNo=... : 신청자 정보에서 "이전"으로 돌아온 경우.
+  //   따로 읽지 않는다. "다음 단계"를 누르면 서버가 같은 호실의 작성 중 신청서를 찾아 수정한다
+  // roomId 없이 들어오면 개발 편의상 목업 호실 번호(1)로 조회
+  const roomId = params.get('roomId') ?? ROOM.roomId; // POST body의 roomId
 
-  const goNext = () => {
-    // 실제 연결 시
-    //   draftNo 없음 → POST  /contract-service/apply/applications            { roomId, moveInDate, months }
-    //   draftNo 있음 → PATCH /contract-service/apply/applications/{draftNo}  { moveInDate, months }
-    // 응답의 applicationNo로 이동
-    const applicationNo = draftNo ?? MOCK_APPLICATION_NO;
-    navigate(`/apply/${applicationNo}/form`);
+  // 호실 조회 상태: loading → ok | error
+  const [status, setStatus] = useState('loading');
+  const [error, setError] = useState(null);
+  const [reloadKey, setReloadKey] = useState(0); // "다시 시도" 누르면 1 올려서 재조회
+
+  // "다음 단계" 요청 상태 (중복 클릭 방지 + 에러 문구)
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState(null);
+
+  useEffect(() => {
+    let ignore = false; // 응답 전에 roomId가 바뀌거나 화면을 떠나면 늦게 온 응답은 버림
+    setStatus('loading');
+    getRoom(roomId)
+      .then((room) => {
+        if (ignore) return;
+        setRoom(room);
+        setStatus('ok');
+      })
+      .catch((e) => {
+        if (ignore) return;
+        setError(e);
+        setStatus('error');
+      });
+    return () => {
+      ignore = true;
+    };
+  }, [roomId, reloadKey, setRoom]);
+
+  if (status === 'loading') {
+    return (
+      <>
+        <StepNav current={1} />
+        <StatusMessage title="호실 정보를 불러오는 중이에요" />
+      </>
+    );
+  }
+
+  if (status === 'error') {
+    // 404 = 없는/삭제된 호실 → 다시 시도해도 같음. 그 외(503, 502, 연결 실패) → 다시 시도 가능
+    const notFound = error?.status === 404;
+    return (
+      <>
+        <StepNav current={1} />
+        <StatusMessage
+          title={notFound ? '신청할 수 없는 호실이에요' : '호실 정보를 불러오지 못했어요'}
+          description={error?.message}
+          action={
+            notFound ? (
+              <Button variant="outline" onClick={() => navigate(-1)}>
+                이전 화면으로
+              </Button>
+            ) : (
+              <Button onClick={() => setReloadKey((k) => k + 1)}>다시 시도</Button>
+            )
+          }
+        />
+      </>
+    );
+  }
+
+  // POST /contract-service/apply/applications { roomId, moveInDate, months }
+  // "이전"으로 돌아온 경우(?applicationNo=...)에도 같은 API를 부른다.
+  // 서버가 같은 회원·같은 호실의 작성 중 신청서를 찾아 수정하고 같은 신청번호를 돌려준다.
+  const goNext = async () => {
+    if (saving) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const res = await createApplication({ roomId, moveInDate: ymd(a.moveIn), months: a.months });
+      navigate(`/apply/${res.applicationNo}/form`);
+    } catch (e) {
+      setSaveError(e.status === 401 ? '로그인 후 신청할 수 있어요.' : e.message);
+      setSaving(false);
+    }
   };
 
   return (
@@ -100,8 +172,13 @@ export default function ApplyRoomPage() {
             <InfoList rows={[['계약 기간', `${a.months}개월`], ['퇴실 예정일', ymdDay(a.moveOut)], ...amountRows(r)]} />
             <AmountBox amount={a.firstPayment} />
             <div className="space-y-2 pt-1">
-              <Button className="w-full" disabled={!r.available} onClick={goNext}>
-                다음 단계 ›
+              {saveError && (
+                <p role="alert" className="rounded-lg bg-warn-bg/60 px-4 py-3 text-sm text-warn-fg">
+                  {saveError}
+                </p>
+              )}
+              <Button className="w-full" disabled={!r.available || saving} onClick={goNext}>
+                {saving ? '저장 중…' : '다음 단계 ›'}
               </Button>
               <Button variant="outline" className="w-full">
                 상담 신청 ›
@@ -113,3 +190,4 @@ export default function ApplyRoomPage() {
     </>
   );
 }
+

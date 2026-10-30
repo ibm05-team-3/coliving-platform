@@ -68,7 +68,8 @@ public class Contract {
     @Column(name = "room_type", nullable = false)
     private String roomType;   //1인실 ]
 
-    @Column(name = "room_structure", nullable = false, length = 100)
+    // 매물 쪽에서 값이 없을 수 있음(proto optional) → null 허용
+    @Column(name = "room_structure", length = 100)
     private String roomStructure;   //호실구조]
 
     @Column(name = "floor_number", nullable = false)
@@ -252,13 +253,25 @@ public class Contract {
         if (room.monthlyFee() <= 0) throw new IllegalArgumentException("이용료 정보가 올바르지 않습니다");
         //보증금이 음수가 아님
         if (room.deposit() < 0 ) throw new IllegalArgumentException("금액 정보가 올바르지 않습니다");
+        //관리비가 음수가 아님
+        if (room.managementFee() < 0) throw new IllegalArgumentException("관리비 정보가 올바르지 않습니다");
         //첫결제 금액이 음수가 아님
         long first = room.monthlyFee() + room.deposit();
 
         //호실정보 복사, 퇴실일 계산 , 금액복사, 첫결제 금액 계산
         this.roomId = room.roomId();
+        this.buildingId = room.buildingId();
         this.buildingName = room.buildingName();
+        this.region = room.region();
+        this.address = room.address();
         this.roomName = room.roomName();
+        this.roomType = room.roomType();
+        this.roomStructure = room.roomStructure();
+        this.floorNumber = room.floorNumber();
+        this.area = room.area();
+        this.roomFacilities = room.roomFacilities();
+        this.buildingFacilities = room.buildingFacilities();
+        this.managementFee = room.managementFee();
         this.moveInDate = moveInDate;
         this.moveOutDate = moveInDate.plusMonths(contractMonths).minusDays((1));   // 퇴실 예정일은 서버가 계산
         this.contractMonths = (short) contractMonths;
