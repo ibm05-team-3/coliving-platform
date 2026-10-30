@@ -5,10 +5,9 @@
       <profile name="Gradle Imported" enabled="true">
         <outputRelativeToContentRoot value="true" />
         <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.48/6858f13541bab505384f07053c5a7b539bbfd3e3/lombok-1.18.48.jar" />
+          <entry name="$PROJECT_DIR$/../../../../../../temp/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.48/6858f13541bab505384f07053c5a7b539bbfd3e3/lombok-1.18.48.jar" />
         </processorPath>
-        <module name="community-service.test" />
-        <module name="community-service.main" />
+        <module name="reservation-service.main" />
       </profile>
     </annotationProcessing>
   </component>
@@ -23,9 +22,15 @@
       <module name="config-server" options="-parameters" />
       <module name="config-server.main" options="-parameters" />
       <module name="config-server.test" options="-parameters" />
+      <module name="dashboard-service" options="-parameters" />
+      <module name="dashboard-service.main" options="-parameters" />
+      <module name="dashboard-service.test" options="-parameters" />
       <module name="eureka-server" options="-parameters" />
       <module name="eureka-server.main" options="-parameters" />
       <module name="eureka-server.test" options="-parameters" />
+      <module name="reservation-service" options="-parameters" />
+      <module name="reservation-service.main" options="-parameters" />
+      <module name="reservation-service.test" options="-parameters" />
       <module name="user-service" options="-parameters" />
       <module name="user-service.main" options="-parameters" />
       <module name="user-service.test" options="-parameters" />
