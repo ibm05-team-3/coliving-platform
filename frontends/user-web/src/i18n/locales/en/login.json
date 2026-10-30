@@ -5,6 +5,7 @@
   "title": "Log in",
   "email": "Email",
   "password": "Password",
+  "forgotPassword": "Forgot your password?",
   "submit": "Log in",
   "submitting": "Signing in",
   "or": "or",

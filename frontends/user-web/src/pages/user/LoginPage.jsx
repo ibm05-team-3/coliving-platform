@@ -120,14 +120,22 @@ function LoginPage() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
           />
-          <TextField
-            id="password"
-            label={t('password')}
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-          />
+          <div className="grid gap-1.5">
+            <TextField
+              id="password"
+              label={t('password')}
+              type="password"
+              autoComplete="current-password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+            <button
+              type="button"
+              className="justify-self-end text-sm font-semibold text-main focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+            >
+              {t('forgotPassword')}
+            </button>
+          </div>
           <div className="mt-1 grid gap-2">
             <button
               type="submit"
