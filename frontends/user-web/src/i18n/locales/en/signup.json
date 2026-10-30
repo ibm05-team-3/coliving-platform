@@ -14,5 +14,9 @@
   "naverSignIn": "Log in with NAVER",
   "emailTaken": "This email is already registered.",
   "hasAccount": "Already have an account?",
-  "failed": "Sign-up failed."
+  "failed": "Sign-up failed.",
+  "checkEmailDocumentTitle": "Check your email",
+  "checkEmailTitle": "Check your email",
+  "checkEmailBody": "We sent an email to {{email}}. Please check your inbox.",
+  "checkEmailHint": "If you do not see it, look in your spam folder."
 }

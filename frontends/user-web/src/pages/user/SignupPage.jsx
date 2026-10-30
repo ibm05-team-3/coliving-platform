@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router'
 import { useTranslation } from 'react-i18next'
 import LocaleSwitch from '../../components/LocaleSwitch'
 import naverIcon from '../../assets/auth/naver-icon.png'
+import { storeSignupEmail } from './signupEmailStorage'
 import '../../assets/auth/google-sign-in.css'
 
 const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL
@@ -87,7 +88,9 @@ function SignupPage() {
         body: JSON.stringify({ email, password }),
       })
       if (response.status === 201) {
-        navigate('/login', { replace: true, state: { signedUp: true } })
+        const sentTo = email.trim()
+        storeSignupEmail(sentTo)
+        navigate('/signup/check-email', { replace: true, state: { email: sentTo } })
         return
       }
       setResult(response.status === 409 ? t('emailTaken') : t('failed'))

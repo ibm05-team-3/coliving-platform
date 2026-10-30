@@ -109,9 +109,6 @@ function LoginPage() {
             <h2 className="text-xl font-semibold text-main sm:text-2xl">{t('title')}</h2>
             <LocaleSwitch />
           </div>
-          {location.state?.signedUp === true && (
-            <p className="text-sm text-text">{t('signedUp')}</p>
-          )}
           <TextField
             id="email"
             label={t('email')}
