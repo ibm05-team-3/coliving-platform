@@ -1,0 +1,21 @@
+meta {
+  name: 준비: 5002 댓글 → 5001에게 알림
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/community-service/posts/{{postId}}/comments
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId2}}
+}
+
+body:json {
+  {
+    "content": "저도 할래요!"
+  }
+}

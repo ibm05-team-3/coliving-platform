@@ -1,0 +1,15 @@
+meta {
+  name: 8-4 다시 해제 → 404 BLOCK_NOT_FOUND
+  type: http
+  seq: 13
+}
+
+delete {
+  url: {{baseUrl}}/community-service/blocks/{{residentId2}}
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}

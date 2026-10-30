@@ -1,0 +1,21 @@
+meta {
+  name: 8-3 본인 차단 → 403 CANNOT_BLOCK_SELF
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/community-service/blocks
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}
+
+body:json {
+  {
+    "blockedUserId": {{residentId}}
+  }
+}

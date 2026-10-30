@@ -77,7 +77,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 | 403 | SANCTIONED | 이용 제한·정지 중 글·댓글·채팅 작성 (0-6 참고) |
 | 403 | CHAT_NOT_AVAILABLE | 차단 관계 등으로 채팅 불가 (차단 사실은 알리지 않음) |
 | 403 | CANNOT_REPORT_SELF, CANNOT_BLOCK_SELF | 본인 신고·차단 |
-| 404 | POST_NOT_FOUND, COMMENT_NOT_FOUND, THREAD_NOT_FOUND, ROOM_NOT_FOUND, DOCUMENT_NOT_FOUND, MESSAGE_NOT_FOUND, USER_NOT_FOUND, REPORT_NOT_FOUND, SANCTION_NOT_FOUND, BLOCK_NOT_FOUND | 대상 없음 |
+| 404 | POST_NOT_FOUND, COMMENT_NOT_FOUND, THREAD_NOT_FOUND, ROOM_NOT_FOUND, DOCUMENT_NOT_FOUND, MESSAGE_NOT_FOUND, USER_NOT_FOUND, REPORT_NOT_FOUND, SANCTION_NOT_FOUND, BLOCK_NOT_FOUND, NOTIFICATION_NOT_FOUND | 대상 없음 |
 | 409 | REINDEX_IN_PROGRESS | 반영 작업 진행 중 |
 | 413 | FILE_TOO_LARGE | FAQ 문서 30MB 초과 |
 | 409 | ALREADY_REPORTED, ALREADY_BLOCKED, ALREADY_HANDLED, SANCTION_ALREADY_REVOKED | 같은 대상 중복 신고, 이미 차단, 이미 처리된 신고, 이미 해제된 제재 |
@@ -885,7 +885,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 |---|---|
 | Method / URL | `GET /community-service/notifications/unread-summary` |
 | 권한 | 회원 · 관리자 |
-| 설명 | 위젯 버튼 빨간 점, 탭 배지, 관리자 사이드바 배지 (Redis) |
+| 설명 | 위젯 버튼 빨간 점, 탭 배지, 관리자 사이드바 배지. 사용자 `note` = 안 읽은 받은 쪽지 수 / 관리자 `note` = 미답변 쪽지함 수 |
 
 **Request** — 없음
 

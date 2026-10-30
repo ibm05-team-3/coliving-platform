@@ -41,6 +41,7 @@ public enum ErrorCode {
 	REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "신고를 찾을 수 없습니다."),
 	SANCTION_NOT_FOUND(HttpStatus.NOT_FOUND, "제재 내역을 찾을 수 없습니다."),
 	BLOCK_NOT_FOUND(HttpStatus.NOT_FOUND, "차단 내역이 없습니다."),
+	NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림을 찾을 수 없습니다."),
 
 	// 409
 	REINDEX_IN_PROGRESS(HttpStatus.CONFLICT, "이미 반영 작업이 진행 중입니다."),

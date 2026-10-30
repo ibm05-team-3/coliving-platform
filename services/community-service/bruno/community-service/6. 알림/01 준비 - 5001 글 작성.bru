@@ -1,0 +1,27 @@
+meta {
+  name: 준비: 5001 글 작성
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/community-service/posts
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}
+
+body:json {
+  {
+    "category": "FREE",
+    "title": "보드게임 하실 분",
+    "content": "금요일 저녁 8시 라운지에서 해요"
+  }
+}
+
+script:post-response {
+  if (res.status === 201) bru.setEnvVar("postId", res.body.postId);
+}
