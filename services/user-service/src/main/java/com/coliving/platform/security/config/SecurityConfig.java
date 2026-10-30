@@ -4,6 +4,7 @@ import com.coliving.platform.security.filter.LoginFilter;
 import com.coliving.platform.security.handler.LoginSuccessHandler;
 import com.coliving.platform.security.http.SessionCookieFactory;
 import com.coliving.platform.security.oauth.RedisOAuth2AuthorizationRequestRepository;
+import com.coliving.platform.security.oauth.ReturnToAuthorizationRequestResolver;
 import com.coliving.platform.security.service.AuthService;
 import com.coliving.platform.security.service.CustomOAuth2UserService;
 import com.coliving.platform.security.service.CustomOidcUserService;
@@ -59,7 +60,7 @@ public class SecurityConfig {
         DefaultOAuth2AuthorizationRequestResolver resolver =
                 new DefaultOAuth2AuthorizationRequestResolver(registrations, OAUTH_AUTHORIZATION_BASE_URI);
         resolver.setAuthorizationRequestCustomizer(OAuth2AuthorizationRequestCustomizers.withPkce());
-        return resolver;
+        return new ReturnToAuthorizationRequestResolver(resolver);
     }
 
     @Bean

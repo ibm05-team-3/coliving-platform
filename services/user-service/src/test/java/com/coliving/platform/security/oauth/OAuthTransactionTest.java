@@ -23,7 +23,8 @@ class OAuthTransactionTest {
                 .additionalParameters(Map.of(PkceParameterNames.CODE_CHALLENGE, "challenge"))
                 .attributes(Map.of(
                         OAuth2ParameterNames.REGISTRATION_ID, "naver",
-                        PkceParameterNames.CODE_VERIFIER, "verifier"
+                        PkceParameterNames.CODE_VERIFIER, "verifier",
+                        SocialReturnPath.ATTRIBUTE, "/community?tab=1"
                 ))
                 .authorizationRequestUri("https://nid.naver.com/oauth2.0/authorize?state=state-1")
                 .build();
@@ -32,6 +33,7 @@ class OAuthTransactionTest {
 
         assertEquals("naver", restored.getAttribute(OAuth2ParameterNames.REGISTRATION_ID));
         assertEquals("verifier", restored.getAttribute(PkceParameterNames.CODE_VERIFIER));
+        assertEquals("/community?tab=1", restored.getAttribute(SocialReturnPath.ATTRIBUTE));
         assertEquals("challenge", restored.getAdditionalParameters().get(PkceParameterNames.CODE_CHALLENGE));
         assertEquals(request.getAuthorizationRequestUri(), restored.getAuthorizationRequestUri());
         assertEquals(request.getState(), restored.getState());

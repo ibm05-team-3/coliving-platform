@@ -7,8 +7,13 @@ import '../../assets/auth/google-sign-in.css'
 
 const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL
 
-function socialLoginUrl(registrationId) {
-  return `${BACKEND_API_BASE_URL}/user-service/user/oauth2/authorization/${registrationId}`
+function socialLoginUrl(registrationId, from) {
+  const url = `${BACKEND_API_BASE_URL}/user-service/user/oauth2/authorization/${registrationId}`
+  const path = returnPath(from)
+  if (path === '/') {
+    return url
+  }
+  return `${url}?return_to=${encodeURIComponent(path)}`
 }
 
 function returnPath(from) {
@@ -135,7 +140,7 @@ function LoginPage() {
           <a
             className="gsi-material-button block no-underline"
             style={{ width: '100%', maxWidth: 'none' }}
-            href={socialLoginUrl('google')}
+            href={socialLoginUrl('google', location.state?.from)}
           >
             <span className="gsi-material-button-content-wrapper">
               <span className="gsi-material-button-icon">
@@ -147,7 +152,7 @@ function LoginPage() {
           <a
             className="flex h-10 w-full items-center rounded-md no-underline"
             style={{ backgroundColor: '#03A94D' }}
-            href={socialLoginUrl('naver')}
+            href={socialLoginUrl('naver', location.state?.from)}
           >
             <img src={naverIcon} alt="" className="ml-5 h-5 w-5 shrink-0" />
             <span className="flex-1 text-center text-sm font-medium text-white">{t('naverSignIn')}</span>
