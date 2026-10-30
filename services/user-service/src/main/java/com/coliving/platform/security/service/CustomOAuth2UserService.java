@@ -72,8 +72,8 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
             Map<String, Object> attributes
     ) {
         UserEntity.UserEntityBuilder userBuilder = UserEntity.builder()
-                .roles(Set.of(Role.USER));
-        optionalText(attributes, "name").ifPresent(userBuilder::name);
+                .roles(Set.of(Role.defaultAccountRole()));
+        optionalText(attributes, "name").ifPresent(name -> userBuilder.name(name).nickname(name));
         optionalText(attributes, "email").ifPresent(userBuilder::email);
         optionalText(attributes, "mobile").ifPresent(userBuilder::phone);
         UserEntity user = userRepository.save(userBuilder.build());

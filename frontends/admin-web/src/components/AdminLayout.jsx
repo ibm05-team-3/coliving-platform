@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react'
-import { NavLink, Outlet, useLocation } from 'react-router'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router'
 import { navigation } from '../navigation'
 import { useNavBadges } from '../features/community/hooks/useNavBadges'
+import { logout } from '../session'
 
 const DESKTOP_QUERY = '(min-width: 1024px)'
 
 function AdminLayout() {
   const location = useLocation()
+  const navigate = useNavigate()
   const [menuPath, setMenuPath] = useState(null)
+  const [loggingOut, setLoggingOut] = useState(false)
   const [isDesktop, setIsDesktop] = useState(() => window.matchMedia(DESKTOP_QUERY).matches)
   const badgeCounts = useNavBadges()
   const open = menuPath === location.pathname
@@ -42,6 +45,16 @@ function AdminLayout() {
     }
   }, [open, isDesktop])
 
+  async function handleLogout() {
+    setLoggingOut(true)
+    try {
+      await logout()
+      navigate('/login', { replace: true })
+    } catch {
+      setLoggingOut(false)
+    }
+  }
+
   return (
     <div className="min-h-dvh bg-background text-text lg:grid lg:grid-cols-[16rem_minmax(0,1fr)]">
       {open && !isDesktop && (
@@ -65,7 +78,7 @@ function AdminLayout() {
           <p className="mt-1 text-sm text-background/90">관리자</p>
         </div>
 
-        <nav aria-label="관리 메뉴" className="flex-1 overflow-y-auto px-3 pb-6">
+        <nav aria-label="관리 메뉴" className="flex flex-1 flex-col overflow-y-auto px-3 pb-6">
           {navigation.map((section) => (
             <div key={section.label ?? 'home'} className={section.label ? 'mt-4' : undefined}>
               {section.label && (
@@ -95,6 +108,16 @@ function AdminLayout() {
               </ul>
             </div>
           ))}
+          <div className="mt-auto pt-8">
+            <button
+              type="button"
+              disabled={loggingOut}
+              onClick={handleLogout}
+              className="w-full rounded-lg bg-accent px-3 py-2 text-left text-sm font-medium text-text hover:bg-accent/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent disabled:opacity-60"
+            >
+              {loggingOut ? '로그아웃 중' : '로그아웃'}
+            </button>
+          </div>
         </nav>
       </aside>
 

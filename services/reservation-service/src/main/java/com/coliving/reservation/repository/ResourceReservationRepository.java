@@ -15,4 +15,10 @@ public interface ResourceReservationRepository
     );
 
     List<ResourceReservation> findByStatus(String status);
+
+    // 반납하지 않은 물품 예약 존재 여부 확인
+    boolean existsByResourceIdAndReturnedAtIsNullAndStatusIn(
+            Long resourceId,
+            List<String> statuses
+    );
 }

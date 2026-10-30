@@ -23,7 +23,7 @@ public class CustomUserDetailsService  implements UserDetailsService {
     @Override
     @Transactional(readOnly = true)
     public @NonNull UserDetails loadUserByUsername(String loginId) throws UsernameNotFoundException {
-        UserEmailAccountEntity account = emailAccountRepository.findByEmail(loginId)
+        UserEmailAccountEntity account = emailAccountRepository.findByEmail(SignupService.normalizeEmail(loginId))
                 .orElseThrow(() -> new UsernameNotFoundException("이메일 또는 비밀번호가 올바르지 않습니다."));
 
         return new CustomUserDetails(account.getUser(), account.getPassword());

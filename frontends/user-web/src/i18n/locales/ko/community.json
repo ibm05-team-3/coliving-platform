@@ -1,6 +1,6 @@
 {
   "common": {
-    "eyebrow": "ROOMLINK COMMUNITY", "cancel": "취소", "close": "닫기", "save": "저장", "edit": "수정", "delete": "삭제", "submit": "등록", "processing": "처리 중", "required": "필수", "optional": "선택", "user": "사용자", "send": "보내기",
+    "eyebrow": "ROOMLINK COMMUNITY", "cancel": "취소", "close": "닫기", "save": "저장", "edit": "수정", "delete": "삭제", "submit": "등록", "processing": "처리 중", "required": "필수", "optional": "선택", "user": "사용자", "anonymous": "익명", "send": "보내기",
     "categories": { "NOTICE": "공지", "FREE": "자유", "SHARE": "나눔", "MEETUP": "모임" },
     "reportReasons": { "ABUSE": "욕설·비방", "HARASSMENT": "괴롭힘·스토킹", "PRIVACY": "개인정보 노출", "SPAM": "광고·도배", "INAPPROPRIATE": "음란·부적절", "HOUSE_RULE": "생활 규칙 위반", "ETC": "기타" },
     "reportTargets": { "POST": "게시글", "COMMENT": "댓글", "CHAT_MESSAGE": "메시지", "USER": "사용자" }

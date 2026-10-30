@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useLocation, useNavigate } from 'react-router'
 
 const BACKEND_API_BASE_URL = import.meta.env.VITE_BACKEND_API_BASE_URL
 
@@ -21,6 +22,9 @@ function TextField({ id, label, type, value, onChange, autoComplete }) {
 }
 
 function LoginPage() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const adminRequired = location.state?.adminRequired === true
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [result, setResult] = useState('')
@@ -41,6 +45,10 @@ function LoginPage() {
         body: JSON.stringify({ email, password }),
       })
       const body = await response.text()
+      if (response.ok) {
+        navigate('/', { replace: true })
+        return
+      }
       setResult(body ? `${response.status}\n${body}` : String(response.status))
     } catch (error) {
       setResult(error instanceof Error ? error.message : String(error))
@@ -60,6 +68,7 @@ function LoginPage() {
       <section className="flex min-w-0 items-center px-4 py-8 sm:px-8 sm:py-12 md:px-12 lg:px-16">
         <form onSubmit={handleSubmit} className="grid w-full min-w-0 max-w-md gap-4 sm:gap-5">
           <h2 className="text-xl font-semibold text-main sm:text-2xl">로그인</h2>
+          {adminRequired && <p className="text-sm text-text">관리자 권한이 없습니다.</p>}
           <TextField
             id="email"
             label="이메일"

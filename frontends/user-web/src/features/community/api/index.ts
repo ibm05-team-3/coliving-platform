@@ -51,13 +51,13 @@ export async function getCommunityPost(postId: number): Promise<CommunityPostDet
   })
 }
 
-export async function createCommunityPost(request: CommunityPostRequest) {
+export async function createCommunityPost(request: CommunityPostRequest, authorName: string | null = null) {
   const postId = nextPostId++;
   COMMUNITY_POST_DETAILS[postId] = {
     postId,
     ...request,
     authorId: CURRENT_USER_ID,
-    authorName: "김민서",
+    authorName,
     authorRoomNumber: "302호",
     viewCount: 0,
     createdAt: new Date().toISOString(),

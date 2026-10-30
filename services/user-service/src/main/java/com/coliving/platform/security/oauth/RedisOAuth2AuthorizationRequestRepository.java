@@ -72,6 +72,11 @@ public class RedisOAuth2AuthorizationRequestRepository
         return transactionDAO.findAndDelete(id.get())
                 .map(OAuthTransaction::toRequest)
                 .filter(saved -> state.equals(saved.getState()))
+                .map(saved -> {
+                    // The callback deletes this transaction before the success handler runs.
+                    SocialReturnPath.remember(request, saved);
+                    return saved;
+                })
                 .orElse(null);
     }
 

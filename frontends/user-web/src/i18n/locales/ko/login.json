@@ -5,6 +5,11 @@
   "title": "로그인",
   "email": "이메일",
   "password": "비밀번호",
+  "forgotPassword": "비밀번호를 잊으셨나요?",
   "submit": "로그인",
-  "submitting": "로그인 중"
+  "submitting": "로그인 중",
+  "or": "또는",
+  "googleSignIn": "Google로 로그인",
+  "naverSignIn": "네이버 로그인",
+  "noAccount": "계정이 없으신가요?"
 }

@@ -1,6 +1,6 @@
 {
   "common": {
-    "eyebrow": "ROOMLINK COMMUNITY", "cancel": "Cancel", "close": "Close", "save": "Save", "edit": "Edit", "delete": "Delete", "submit": "Post", "processing": "Processing", "required": "Required", "optional": "Optional", "user": "User", "send": "Send",
+    "eyebrow": "ROOMLINK COMMUNITY", "cancel": "Cancel", "close": "Close", "save": "Save", "edit": "Edit", "delete": "Delete", "submit": "Post", "processing": "Processing", "required": "Required", "optional": "Optional", "user": "User", "anonymous": "Anonymous", "send": "Send",
     "categories": { "NOTICE": "Notice", "FREE": "General", "SHARE": "Sharing", "MEETUP": "Meetups" },
     "reportReasons": { "ABUSE": "Abuse or defamation", "HARASSMENT": "Harassment or stalking", "PRIVACY": "Personal information", "SPAM": "Spam", "INAPPROPRIATE": "Inappropriate content", "HOUSE_RULE": "House-rule violation", "ETC": "Other" },
     "reportTargets": { "POST": "post", "COMMENT": "comment", "CHAT_MESSAGE": "message", "USER": "user" }

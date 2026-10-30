@@ -1,5 +1,5 @@
-package com.coliving.reservation.dto;
 
+package com.coliving.reservation.dto;
 
 import lombok.Getter;
 import lombok.Setter;
