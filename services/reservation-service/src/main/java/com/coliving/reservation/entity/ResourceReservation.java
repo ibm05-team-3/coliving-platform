@@ -43,6 +43,10 @@ public class ResourceReservation {
     @Column(name = "returned_at")
     private LocalDateTime returnedAt;
 
+    // 연체 이력 여부
+    @Column(name= "is_overdue", nullable = false)
+    private Boolean isOverdue = false;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

@@ -1,5 +1,5 @@
-package com.coliving.reservation.scheduler;
 
+package com.coliving.reservation.scheduler;
 
 import com.coliving.reservation.entity.ResourceReservation;
 import com.coliving.reservation.entity.SharedResource;
@@ -43,21 +43,27 @@ public class ReservationExpirationScheduler {
                 continue;
             }
 
-            // 5. 공간형 공용 자원만 처리
-            if (!"SPACE".equals(resource.getResourceType())) {
-                continue;
-            }
-
-            // 6. 예약 종료 날짜와 시간
+            // 5. 예약 종료 날짜와 시간
             LocalDateTime endDateTime = LocalDateTime.of(
                     reservation.getReservationDate(),
                     reservation.getEndTime()
             );
 
-            // 7. 예약 종료 시간이 지났으면 만료 처리
+            // 6. 예약 종료 시간이 지나지 않았다면 건너뛰기
+            if (now.isBefore(endDateTime)) {
+                continue;
+            }
 
-            if (!now.isBefore(endDateTime)) {
+            // 7. 공간 예약은 자동 만료
+            if ("SPACE".equals(resource.getResourceType())) {
                 reservation.setStatus("EXPIRED");
+            }
+
+            // 8. 물품은 반납하지 않았으면 연체 처리
+            if ("ITEM".equals(resource.getResourceType())
+                    && reservation.getReturnedAt() == null) {
+                reservation.setStatus("OVERDUE");
+                reservation.setIsOverdue(true);
             }
         }
     }
