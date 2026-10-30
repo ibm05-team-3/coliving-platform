@@ -1,5 +1,5 @@
 meta {
-  name: 4-6 5001 메시지 보내기 201
+  name: 08 4-6 5001 보내기
   type: http
   seq: 8
 }
@@ -18,4 +18,8 @@ body:json {
   {
     "content": "안녕하세요! 장 보러 같이 가요."
   }
+}
+
+script:post-response {
+  if (res.status === 201) bru.setEnvVar("myMessageId", res.body.messageId);
 }

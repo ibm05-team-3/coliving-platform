@@ -1,0 +1,15 @@
+meta {
+  name: 18 4-1 다시 목록 (0)
+  type: http
+  seq: 18
+}
+
+get {
+  url: {{baseUrl}}/community-service/chat/rooms
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}

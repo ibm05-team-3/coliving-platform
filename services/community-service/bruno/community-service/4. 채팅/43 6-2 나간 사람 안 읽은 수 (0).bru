@@ -1,0 +1,15 @@
+meta {
+  name: 43 6-2 나간 사람 안 읽은 수 (0)
+  type: http
+  seq: 43
+}
+
+get {
+  url: {{baseUrl}}/community-service/notifications/unread-summary
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId2}}
+}

@@ -1,0 +1,25 @@
+meta {
+  name: 8-1 없는 채팅 메시지 신고 → 404 (MESSAGE_NOT_FOUND 또는 나간 방이면 ROOM_NOT_FOUND)
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/community-service/reports
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}
+
+body:json {
+  {
+    "sourceType": "CHAT_ROOM",
+    "sourceId": {{roomId}},
+    "targetType": "CHAT_MESSAGE",
+    "targetId": "000000000000000000000000",
+    "reasonType": "ABUSE"
+  }
+}

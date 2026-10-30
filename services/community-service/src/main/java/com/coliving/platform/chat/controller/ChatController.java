@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/** 1:1 채팅 REST (API 4-1 ~ 4-4, 4-6) — 실시간은 WebSocket(4-5) */
+/** 1:1 채팅 REST (API 4-1 ~ 4-4, 4-6, 4-7) — 실시간은 WebSocket(4-5) */
 @RestController
 @RequestMapping("/community-service/chat/rooms")
 @RequiredArgsConstructor
@@ -57,6 +57,13 @@ public class ChatController {
 	public ResponseEntity<Void> markRead(@RequestHeader("X-User") Long userId, @PathVariable Long roomId,
 			@Valid @RequestBody ChatReadRequestDTO request) {
 		chatService.markRead(userId, roomId, request.lastReadMessageId());
+		return ResponseEntity.noContent().build();
+	}
+
+	/** 4-7 채팅방 나가기 */
+	@PostMapping("/{roomId}/leave")
+	public ResponseEntity<Void> leaveRoom(@RequestHeader("X-User") Long userId, @PathVariable Long roomId) {
+		chatService.leaveRoom(userId, roomId);
 		return ResponseEntity.noContent().build();
 	}
 

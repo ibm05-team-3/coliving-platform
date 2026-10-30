@@ -1,0 +1,15 @@
+meta {
+  name: 12 4-1 채팅방 목록 (5001)
+  type: http
+  seq: 12
+}
+
+get {
+  url: {{baseUrl}}/community-service/chat/rooms
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}

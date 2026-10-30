@@ -1,0 +1,15 @@
+meta {
+  name: 25 4-1 차단한 사람 목록 (숨김)
+  type: http
+  seq: 25
+}
+
+get {
+  url: {{baseUrl}}/community-service/chat/rooms
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId2}}
+}

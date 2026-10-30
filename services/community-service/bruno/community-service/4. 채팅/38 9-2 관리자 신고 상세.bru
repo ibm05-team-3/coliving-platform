@@ -1,0 +1,15 @@
+meta {
+  name: 38 9-2 관리자 신고 상세
+  type: http
+  seq: 38
+}
+
+get {
+  url: {{baseUrl}}/community-service/admin/reports/{{chatReportId}}
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{adminId}}
+}

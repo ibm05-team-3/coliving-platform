@@ -1,0 +1,15 @@
+meta {
+  name: 42 4-1 나간 사람 목록 (방 없음)
+  type: http
+  seq: 42
+}
+
+get {
+  url: {{baseUrl}}/community-service/chat/rooms
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId2}}
+}

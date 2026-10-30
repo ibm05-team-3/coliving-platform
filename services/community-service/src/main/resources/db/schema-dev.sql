@@ -205,6 +205,7 @@ CREATE TABLE chat_rooms (
     read_only               BOOLEAN          NOT NULL DEFAULT FALSE,
     last_message_preview    VARCHAR(100),                          -- 반정규화
     last_message_at         TIMESTAMP,                           -- 반정규화
+    closed_at               TIMESTAMP,                           -- 종료 일시 (누군가 나가면 종료, pair_key 뒤에 #방ID)
     created_at              TIMESTAMP        NOT NULL DEFAULT NOW(),
     updated_at              TIMESTAMP        NOT NULL DEFAULT NOW(),
     CONSTRAINT uq_chat_rooms_pair_key UNIQUE (pair_key),
@@ -213,12 +214,13 @@ CREATE TABLE chat_rooms (
 COMMENT ON TABLE chat_rooms IS '입주자 1:1 채팅방';
 COMMENT ON COLUMN chat_rooms.id IS '채팅방 ID';
 COMMENT ON COLUMN chat_rooms.building_id IS '건물 ID (같은 건물 입주자끼리만)';
-COMMENT ON COLUMN chat_rooms.pair_key IS '참여자 쌍 키';
+COMMENT ON COLUMN chat_rooms.pair_key IS '참여자 쌍 키 (종료된 방은 뒤에 #방ID)';
 COMMENT ON COLUMN chat_rooms.source_type IS '시작 위치 (게시글/프로필)';
 COMMENT ON COLUMN chat_rooms.source_post_id IS '시작한 게시글 ID';
 COMMENT ON COLUMN chat_rooms.read_only IS '읽기 전용 (상대 퇴거 시 TRUE)';
 COMMENT ON COLUMN chat_rooms.last_message_preview IS '마지막 메시지 미리보기';
 COMMENT ON COLUMN chat_rooms.last_message_at IS '마지막 메시지 일시';
+COMMENT ON COLUMN chat_rooms.closed_at IS '종료 일시 (한 명이라도 나가면 종료, 다시 시작하면 새 방)';
 
 -- =====================================================
 -- 7. 채팅 참여자 (Chat Room Member)
@@ -227,6 +229,7 @@ CREATE TABLE chat_room_members (
     chat_room_id            BIGINT      NOT NULL,
     user_id                 BIGINT      NOT NULL,
     last_read_message_id    VARCHAR(30),                           -- MongoDB 메시지 ID
+    left_at                 TIMESTAMP,                             -- 나간 일시 (나가면 내 목록에서 숨김)
     created_at              TIMESTAMP   NOT NULL DEFAULT NOW(),       -- 참여 일시
     updated_at              TIMESTAMP   NOT NULL DEFAULT NOW(),
     PRIMARY KEY (chat_room_id, user_id),
@@ -237,6 +240,7 @@ COMMENT ON COLUMN chat_room_members.chat_room_id IS '채팅방 ID';
 COMMENT ON COLUMN chat_room_members.user_id IS '참여자 ID';
 COMMENT ON COLUMN chat_room_members.last_read_message_id IS '마지막으로 읽은 메시지 ID';
 COMMENT ON COLUMN chat_room_members.created_at IS '참여 일시';
+COMMENT ON COLUMN chat_room_members.left_at IS '나간 일시 (다시 들어올 수 없음)';
 
 CREATE INDEX idx_chat_room_members_user ON chat_room_members (user_id);
 

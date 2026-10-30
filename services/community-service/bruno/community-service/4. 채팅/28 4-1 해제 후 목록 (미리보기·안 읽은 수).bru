@@ -1,0 +1,15 @@
+meta {
+  name: 28 4-1 해제 후 목록 (미리보기·안 읽은 수)
+  type: http
+  seq: 28
+}
+
+get {
+  url: {{baseUrl}}/community-service/chat/rooms
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId2}}
+}

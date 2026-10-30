@@ -1,0 +1,15 @@
+meta {
+  name: 27 준비 - 차단 해제
+  type: http
+  seq: 27
+}
+
+delete {
+  url: {{baseUrl}}/community-service/blocks/{{residentId}}
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId2}}
+}

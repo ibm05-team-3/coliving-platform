@@ -53,7 +53,7 @@ public class CommentService {
 
 		CommentEntity saved = commentRepository.save(CommentEntity.create(post, parent, userId, request.content()));
 		postRepository.addCommentCount(postId, 1);
-		notifyAuthor(me, post, parent);
+		notifyAuthor(me, post, parent, saved.getContent());
 
 		return new CommentCreateResponseDTO(saved.getId(), parent != null ? parent.getId() : null, saved.getCreatedAt());
 	}
@@ -86,18 +86,18 @@ public class CommentService {
 		return comment;
 	}
 
-	/** 글쓴이(답글이면 원댓글 작성자)에게 알림 — 본인 글이거나 상대가 나를 차단했으면 생략 */
-	private void notifyAuthor(Resident me, PostEntity post, CommentEntity parent) {
+	/** 글쓴이(답글이면 원댓글 작성자)에게 알림 "김민서: 댓글 미리보기" — 본인 글이거나 상대가 나를 차단했으면 생략 */
+	private void notifyAuthor(Resident me, PostEntity post, CommentEntity parent, String content) {
 		Long receiverId = parent != null ? parent.getAuthorId() : post.getAuthorId();
 		if (receiverId.equals(me.userId()) || blockQueryService.isBlockedBy(me.userId(), receiverId)) {
 			return;
 		}
 		if (parent != null) {
 			notificationService.notifyUser(receiverId, NotificationType.REPLY, "새 답글",
-					me.name() + "님이 회원님의 댓글에 답글을 남겼어요", NotificationTarget.POST, post.getId());
+					me.name() + ": " + NotificationService.preview(content), NotificationTarget.POST, post.getId());
 		} else {
 			notificationService.notifyUser(receiverId, NotificationType.COMMENT, "새 댓글",
-					me.name() + "님이 회원님의 게시글에 댓글을 남겼어요", NotificationTarget.POST, post.getId());
+					me.name() + ": " + NotificationService.preview(content), NotificationTarget.POST, post.getId());
 		}
 	}
 }

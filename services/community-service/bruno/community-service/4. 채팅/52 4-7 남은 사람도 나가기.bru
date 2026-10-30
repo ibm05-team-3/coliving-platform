@@ -1,0 +1,15 @@
+meta {
+  name: 52 4-7 남은 사람도 나가기
+  type: http
+  seq: 52
+}
+
+post {
+  url: {{baseUrl}}/community-service/chat/rooms/{{roomId}}/leave
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}

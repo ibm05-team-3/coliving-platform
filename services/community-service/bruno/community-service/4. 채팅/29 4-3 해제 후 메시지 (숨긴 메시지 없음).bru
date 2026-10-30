@@ -1,0 +1,15 @@
+meta {
+  name: 29 4-3 해제 후 메시지 (숨긴 메시지 없음)
+  type: http
+  seq: 29
+}
+
+get {
+  url: {{baseUrl}}/community-service/chat/rooms/{{roomId}}/messages
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId2}}
+}

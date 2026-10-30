@@ -1,5 +1,9 @@
 package com.coliving.platform.safety.service;
 
+import com.coliving.platform.chat.document.ChatMessageDocument;
+import com.coliving.platform.chat.entity.ChatRoomMemberId;
+import com.coliving.platform.chat.repository.ChatMessageRepository;
+import com.coliving.platform.chat.repository.ChatRoomMemberRepository;
 import com.coliving.platform.client.ContractClient;
 import com.coliving.platform.client.ContractClient.ResidentRoom;
 import com.coliving.platform.client.UserClient;
@@ -41,6 +45,8 @@ public class ReportService {
 	private final UserClient userClient;
 	private final ContractClient contractClient;
 	private final NotificationService notificationService;
+	private final ChatMessageRepository chatMessageRepository;
+	private final ChatRoomMemberRepository chatRoomMemberRepository;
 
 	@Transactional
 	public ReportCreateResponseDTO create(Long userId, ReportCreateRequestDTO request) {
@@ -70,9 +76,9 @@ public class ReportService {
 
 	/** 신고 대상 확인 + 신고 당시 내용 스냅샷 (같은 건물만) */
 	private Target resolveTarget(Resident me, ReportCreateRequestDTO request) {
-		long targetId = parseId(request.targetId());
 		return switch (request.targetType()) {
 			case POST -> {
+				long targetId = parseId(request.targetId());
 				requireSource(request, ReportSourceType.POST, targetId);
 				PostEntity post = activePost(targetId);
 				residentGuard.requireSameBuilding(me, post.getBuildingId());
@@ -80,6 +86,7 @@ public class ReportService {
 						post.getAuthorId(), post.getCreatedAt()));
 			}
 			case COMMENT -> {
+				long targetId = parseId(request.targetId());
 				CommentEntity comment = commentRepository.findById(targetId)
 						.filter(CommentEntity::isActive)
 						.orElseThrow(() -> new CommunityException(ErrorCode.COMMENT_NOT_FOUND));
@@ -89,6 +96,7 @@ public class ReportService {
 						comment.getCreatedAt()));
 			}
 			case USER -> {
+				long targetId = parseId(request.targetId());
 				if (userClient.getUser(targetId) == null) {
 					throw new CommunityException(ErrorCode.USER_NOT_FOUND);
 				}
@@ -98,13 +106,42 @@ public class ReportService {
 				}
 				if (request.sourceType() == ReportSourceType.POST) {
 					residentGuard.requireSameBuilding(me, activePost(request.sourceId()).getBuildingId());
+				} else {
+					// 채팅방에서 신고 → 나와 상대 모두 그 방 참여자여야 함
+					requireChatMember(request.sourceId(), me.userId());
+					requireChatParticipant(request.sourceId(), targetId);
 				}
-				// TODO(COL-33): sourceType = CHAT_ROOM 이면 채팅방 참여자인지 확인
 				yield new Target(targetId, snapshot("사용자 신고", targetId, LocalDateTime.now()));
 			}
-			case CHAT_MESSAGE -> throw new CommunityException(ErrorCode.INVALID_REQUEST,
-					"채팅 메시지 신고는 채팅 기능(COL-33) 이후 지원돼요.");
+			case CHAT_MESSAGE -> {
+				// sourceId = 채팅방 ID, targetId = 메시지 ID (MongoDB ObjectId)
+				if (request.sourceType() != ReportSourceType.CHAT_ROOM) {
+					throw new CommunityException(ErrorCode.INVALID_REQUEST, "채팅 메시지는 채팅방에서만 신고할 수 있어요.");
+				}
+				requireChatMember(request.sourceId(), me.userId());
+				ChatMessageDocument message = chatMessageRepository.findById(request.targetId())
+						.filter(m -> m.getRoomId().equals(request.sourceId()))
+						.filter(ChatMessageDocument::isActive)
+						.filter(m -> m.isVisibleTo(me.userId()))
+						.orElseThrow(() -> new CommunityException(ErrorCode.MESSAGE_NOT_FOUND));
+				yield new Target(message.getSenderId(), snapshot(message.getContent(), message.getSenderId(),
+						message.getSentAt()));
+			}
 		};
+	}
+
+	/** 신고하는 사람: 그 방에 참여 중이어야 함 (나간 방은 404) */
+	private void requireChatMember(Long roomId, Long userId) {
+		chatRoomMemberRepository.findById(new ChatRoomMemberId(roomId, userId))
+				.filter(member -> !member.hasLeft())
+				.orElseThrow(() -> new CommunityException(ErrorCode.ROOM_NOT_FOUND));
+	}
+
+	/** 신고 대상: 그 방 참여자였으면 됨 (먼저 나간 사람도 신고 가능) */
+	private void requireChatParticipant(Long roomId, Long userId) {
+		if (!chatRoomMemberRepository.existsById(new ChatRoomMemberId(roomId, userId))) {
+			throw new CommunityException(ErrorCode.ROOM_NOT_FOUND);
+		}
 	}
 
 	private PostEntity activePost(Long postId) {

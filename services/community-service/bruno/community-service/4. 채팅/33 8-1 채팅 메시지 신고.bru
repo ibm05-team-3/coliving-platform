@@ -1,0 +1,30 @@
+meta {
+  name: 33 8-1 채팅 메시지 신고
+  type: http
+  seq: 33
+}
+
+post {
+  url: {{baseUrl}}/community-service/reports
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}
+
+body:json {
+  {
+    "sourceType": "CHAT_ROOM",
+    "sourceId": {{roomId}},
+    "targetType": "CHAT_MESSAGE",
+    "targetId": "{{messageId}}",
+    "reasonType": "ABUSE",
+    "reasonDetail": "말투가 불쾌해요."
+  }
+}
+
+script:post-response {
+  if (res.status === 201) bru.setEnvVar("chatReportId", res.body.reportId);
+}

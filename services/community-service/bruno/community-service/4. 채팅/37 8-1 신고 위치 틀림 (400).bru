@@ -1,0 +1,25 @@
+meta {
+  name: 37 8-1 신고 위치 틀림 (400)
+  type: http
+  seq: 37
+}
+
+post {
+  url: {{baseUrl}}/community-service/reports
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}
+
+body:json {
+  {
+    "sourceType": "POST",
+    "sourceId": {{otherPostId}},
+    "targetType": "CHAT_MESSAGE",
+    "targetId": "{{messageId}}",
+    "reasonType": "ABUSE"
+  }
+}

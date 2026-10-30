@@ -1,0 +1,22 @@
+meta {
+  name: 22 4-2 차단당한 사람이 방 열기 (200)
+  type: http
+  seq: 22
+}
+
+post {
+  url: {{baseUrl}}/community-service/chat/rooms
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}
+
+body:json {
+  {
+    "partnerUserId": {{residentId2}},
+    "sourceType": "PROFILE"
+  }
+}

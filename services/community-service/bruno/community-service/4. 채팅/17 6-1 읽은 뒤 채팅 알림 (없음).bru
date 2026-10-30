@@ -1,0 +1,15 @@
+meta {
+  name: 17 6-1 읽은 뒤 채팅 알림 (없음)
+  type: http
+  seq: 17
+}
+
+get {
+  url: {{baseUrl}}/community-service/notifications?unreadOnly=true
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}

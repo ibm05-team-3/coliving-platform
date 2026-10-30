@@ -76,7 +76,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 | 403 | NOT_RESIDENT, NOT_OWNER, OTHER_BUILDING | 입주자 아님, 본인 글 아님, 다른 건물 |
 | 403 | SANCTIONED | 이용 제한·정지 중 글·댓글·채팅 작성 (0-6 참고) |
 | 403 | CHAT_NOT_AVAILABLE | 본인·입주자가 아닌 상대와 채팅, 내가 차단한 상대에게 채팅 (상대가 나를 차단한 경우는 오류 없이 처리 — 0-6) |
-| 403 | CHAT_READ_ONLY | 읽기 전용 채팅방(본인·상대 퇴거)에 메시지 전송 |
+| 403 | CHAT_READ_ONLY | 읽기 전용 채팅방(상대가 나간 방, 본인·상대 퇴거)에 메시지 전송 |
 | 403 | CANNOT_REPORT_SELF, CANNOT_BLOCK_SELF | 본인 신고·차단 |
 | 403 | ADMIN_ONLY | 관리자 API를 관리자가 아닌 사용자가 호출 |
 | 404 | POST_NOT_FOUND, COMMENT_NOT_FOUND, THREAD_NOT_FOUND, ROOM_NOT_FOUND, DOCUMENT_NOT_FOUND, MESSAGE_NOT_FOUND, USER_NOT_FOUND, REPORT_NOT_FOUND, SANCTION_NOT_FOUND, BLOCK_NOT_FOUND, NOTIFICATION_NOT_FOUND | 대상 없음 |
@@ -125,6 +125,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 | 4-4 | PATCH | `/community-service/chat/rooms/{roomId}/read` | 입주자 | 읽음 처리 |
 | 4-5 | WS | `/community-service/ws` (STOMP) | 회원 | 실시간 채팅·알림 |
 | 4-6 | POST | `/community-service/chat/rooms/{roomId}/messages` | 입주자 | 메시지 보내기 (REST — WebSocket 대체·테스트용) |
+| 4-7 | POST | `/community-service/chat/rooms/{roomId}/leave` | 입주자 | 채팅방 나가기 |
 | 5-1 | GET | `/community-service/posts` | 입주자 | 게시글 목록 |
 | 5-2 | GET | `/community-service/posts/{postId}` | 입주자 | 게시글 상세 (조회수 증가) |
 | 5-3 | POST | `/community-service/posts` | 입주자·관리자 | 게시글 작성 |
@@ -471,14 +472,14 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 | 항목 | 내용 |
 |---|---|
 | Method / URL | `GET /community-service/chat/rooms` |
-| 권한 | 입주자 (퇴거자는 기존 방 읽기만) |
+| 권한 | 입주자 (퇴거자는 기존 방 읽기만). 내가 나간 방은 목록에 없음 |
 
 **Request** — 없음
 
 **Response 200**
 ```json
 [
-  { "roomId": 501, "partner": { "userId": 5002, "name": "박준영", "profileImageUrl": null, "roomNumber": "201호" }, "lastMessage": "내일 라운지에서 봬요!", "lastMessageAt": "2025-10-18T21:03:00", "unreadCount": 2, "readOnly": false }
+  { "roomId": 501, "partner": { "userId": 5002, "name": "박준영", "profileImageUrl": null, "roomNumber": "201호" }, "lastMessage": "내일 라운지에서 봬요!", "lastMessageAt": "2025-10-18T21:03:00", "unreadCount": 2, "readOnly": false, "partnerLeft": false }
 ]
 ```
 
@@ -492,7 +493,8 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 | [].lastMessage | String \| null | 마지막 메시지 미리보기 (나에게 숨긴 메시지 제외, 숨김·삭제된 메시지면 null) |
 | [].lastMessageAt | DateTime \| null | 마지막 메시지 일시 (정렬 기준) |
 | [].unreadCount | Integer | 안 읽은 메시지 수 |
-| [].readOnly | Boolean | 읽기 전용 (상대·본인 퇴거 시 true) |
+| [].readOnly | Boolean | 읽기 전용 (상대가 나간 방, 상대·본인 퇴거 시 true) → 입력창 막기 |
+| [].partnerLeft | Boolean | 상대가 나간 방 → "상대방이 대화방을 나갔습니다" 표시. 이전 메시지는 그대로 보이고 신고 가능 |
 
 ### 4-2. 채팅방 열기 (없으면 생성)
 
@@ -590,12 +592,28 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 
 | 구분 | 경로 | 설명 |
 |---|---|---|
-| 연결 | `/community-service/ws` | CONNECT 헤더 `Authorization: Bearer {JWT}` |
-| 메시지 전송 | SEND `/app/chat/{roomId}` | Body `{ "content": "안녕하세요" }` (content: String, 필수, 1~1,000자) |
-| 메시지 수신 | SUBSCRIBE `/topic/chat/{roomId}` | 4-3 `messages[]` 항목과 같은 구조 |
-| 알림 수신 | SUBSCRIBE `/user/queue/notifications` | 6-1 알림 항목과 같은 구조 (쪽지·채팅·댓글) |
-| 오류 수신 | SUBSCRIBE `/user/queue/errors` | `{ "code": "CHAT_READ_ONLY", "message": "..." }` — code: `CHAT_READ_ONLY`, `SANCTIONED`, `CHAT_NOT_AVAILABLE` |
+| 연결 | `/community-service/ws` (STOMP over WebSocket) | CONNECT 헤더 `X-User: {회원 ID}` — Gateway 연동 시 `Authorization: Bearer {JWT}`로 교체 |
+| 메시지 전송 | SEND `/app/chat/{roomId}` | Body `{ "content": "안녕하세요" }` (content: String, 필수, 1~1,000자). 처리 규칙은 4-6과 같음 |
+| 채팅 수신 | SUBSCRIBE `/user/queue/chat` | **내가 참여한 모든 방**의 새 메시지 (내가 보낸 것 포함). 4-3 `messages[]` 항목 + `roomId` |
+| 알림 수신 | SUBSCRIBE `/user/queue/notifications` | 6-1 알림 항목과 같은 구조 (쪽지·채팅·댓글·제재 등 저장되는 모든 알림) |
+| 관리자 알림 수신 | SUBSCRIBE `/topic/admin/notifications` | 관리자만 구독 가능. 관리자 공용 알림 (새 신고·새 쪽지 문의) — 6-1 알림 항목 구조 |
+| 채팅방 이벤트 | SUBSCRIBE `/user/queue/chat-events` | 상대가 나가면 남은 사람에게 `{ "type": "PARTNER_LEFT", "roomId": 1, "userId": 5002 }` → 안내 문구 표시·입력창 막기 |
+| 오류 수신 | SUBSCRIBE `/user/queue/errors` | 보내기 실패 시 보낸 사람에게만. `{ "code": "CHAT_READ_ONLY", "message": "...", "roomId": 1 }` — code: `CHAT_READ_ONLY`, `SANCTIONED`(+`sanctionType`, `endsAt`), `CHAT_NOT_AVAILABLE`, `ROOM_NOT_FOUND`, `INVALID_REQUEST`, `INTERNAL_ERROR` |
 
+**채팅 수신 예시** (`/user/queue/chat`)
+```json
+{ "roomId": 1, "messageId": "6712f0a1c3e5b2a1f0000001", "senderId": 5002, "content": "내일 라운지에서 봬요!", "status": "ACTIVE", "sentAt": "2025-10-18T21:03:00" }
+```
+
+| 규칙 | 내용 |
+|---|---|
+| 구독 제한 | `/user/queue/**`(내 것만 오는 개인 채널)와 `/topic/admin/**`(관리자)만 구독 가능, 나머지는 STOMP ERROR 후 연결 종료 |
+| 보내기 제한 | SEND는 `/app/**`만 가능 (다른 사용자에게 직접 보내는 것 차단) |
+| 전송 시점 | DB 저장이 끝난(커밋된) 뒤 비동기로 전송 — 접속 중이 아니면 실시간 전송은 사라지지만 4-3·6-1로 다시 불러올 수 있음 |
+| 차단 | 상대가 나를 차단한 상태에서 보낸 메시지는 **나에게만** 전송, 상대에게는 전송·알림 없음 (0-6) |
+| 채팅 알림 | 받는 사람에게 6-1 `CHAT` 알림 저장 — 제목 `새 메시지`, 내용 `보낸 사람 이름: 메시지 미리보기(20자)`. **방마다 안 읽은 알림 1개만**: 새 메시지가 오면 이전 안 읽은 알림을 지우고 최신 메시지로 새로 만듦(목록 맨 위로). 4-4 읽음 처리하면 그 방 채팅 알림도 읽음. 프론트는 실시간으로 받은 `CHAT` 알림을 같은 `targetId`의 기존 항목과 바꿔 보여주면 됨 |
+
+> 처음 설계의 `/topic/chat/{roomId}`(방별 공용 채널)는 `/user/queue/chat`(개인 채널)으로 바꿨어요. 방별 채널은 방 번호만 알면 누구나 구독할 수 있고, 차단 중 메시지를 보낸 사람에게만 보내기가 어려워서예요. 프론트는 구독 1개로 모든 방 메시지를 받고 `roomId`로 나눠 보여주면 돼요 (채팅방 목록 미리보기·안 읽은 수 갱신에도 사용).
 
 ### 4-6. 메시지 보내기 (REST)
 
@@ -618,6 +636,29 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 ```json
 { "messageId": "6712f0a1c3e5b2a1f0000001", "senderId": 5001, "content": "내일 라운지에서 봬요!", "status": "ACTIVE", "sentAt": "2025-10-18T21:03:00" }
 ```
+
+### 4-7. 채팅방 나가기
+
+| 항목 | 내용 |
+|---|---|
+| Method / URL | `POST /community-service/chat/rooms/{roomId}/leave` |
+| 권한 | 해당 방 참여자 |
+| 설명 | 화면에서 "나가면 대화 내용이 사라지고 다시 들어올 수 없어요" 팝업 확인 후 호출. 내 목록에서 사라지고 다시 들어올 수 없음 |
+
+**Request** — Path: `roomId` (Long), Body 없음
+
+**Response 204** — Body 없음
+
+| 규칙 | 내용 |
+|---|---|
+| 나간 사람 | 4-1 목록에서 제외, 4-3·4-4·4-6·4-7·4-5 보내기 모두 404 ROOM_NOT_FOUND. 안 읽은 수(6-2)에서 빠지고 이 방 채팅 알림은 읽음 처리 |
+| 남은 사람 | 방이 그대로 남음 (`partnerLeft: true`, `readOnly: true`). 이전 메시지 보기·나간 사람의 메시지/사용자 신고 가능, 메시지 보내기는 403 CHAT_READ_ONLY. 실시간으로 `/user/queue/chat-events` `PARTNER_LEFT` 수신 |
+| 다시 채팅 | 누군가 나가면 그 방은 종료(`chat_rooms.closed_at`) → 같은 두 사람이 4-2로 다시 시작하면 **새 방** (이전 대화 없음) |
+| 둘 다 나감 | 두 사람 화면에서 모두 사라짐. 데이터는 관리자 신고 확인용으로 보관 (자동 삭제는 추후) |
+
+| 오류 | 상황 |
+|---|---|
+| 404 ROOM_NOT_FOUND | 참여하지 않았거나 이미 나간 방 |
 
 ---
 
@@ -886,7 +927,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 |---|---|
 | Method / URL | `GET /community-service/notifications` |
 | 권한 | 회원 · 관리자 |
-| 설명 | 헤더 종 아이콘 드롭다운. 30일 보관 |
+| 설명 | 헤더 종 아이콘 드롭다운. 30일 보관. 새 알림은 4-5 `/user/queue/notifications`로 실시간 수신. 채팅·댓글·답글 알림 내용은 `이름: 미리보기(20자)` (카카오톡 방식). `CHAT` 알림은 방마다 안 읽은 것 1개만, 항상 최신 메시지 |
 
 **Request** — Query
 
@@ -900,7 +941,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 {
   "content": [
     { "notificationId": 301, "type": "NOTE", "title": "새 쪽지", "message": "망원 스테이 매니저가 쪽지를 보냈어요", "targetType": "NOTE_THREAD", "targetId": "12", "read": false, "createdAt": "2025-10-18T13:11:00" },
-    { "notificationId": 302, "type": "CHAT", "title": "새 메시지", "message": "박준영님: 내일 라운지에서 봬요!", "targetType": "CHAT_ROOM", "targetId": "501", "read": false, "createdAt": "2025-10-18T21:03:00" }
+    { "notificationId": 302, "type": "CHAT", "title": "새 메시지", "message": "박준영: 내일 라운지에서 봬요!", "targetType": "CHAT_ROOM", "targetId": "501", "read": false, "createdAt": "2025-10-18T21:03:00" }
   ],
   "page": 0, "size": 20, "totalElements": 2, "totalPages": 1
 }
@@ -1223,7 +1264,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 | reasonType | ReportReason | O | 신고 사유 |
 | reasonDetail | String | △ | 상세 내용 (최대 500자, `ETC`면 필수) |
 
-> `targetType = CHAT_MESSAGE`(채팅 메시지 신고)는 채팅 기능(COL-33) 이후 지원 — 지금은 400
+> 채팅 메시지 신고: `sourceType = CHAT_ROOM`, `sourceId` = 채팅방 ID, `targetType = CHAT_MESSAGE`, `targetId` = 메시지 ID(ObjectId). 내가 참여한 방의 정상 메시지만 (아니면 404 ROOM_NOT_FOUND / MESSAGE_NOT_FOUND). 채팅방에서 사용자 신고(`USER`)도 나와 상대가 그 방 참여자여야 함
 
 **Response 201**
 ```json

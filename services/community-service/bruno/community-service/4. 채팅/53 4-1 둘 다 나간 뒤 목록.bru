@@ -1,0 +1,15 @@
+meta {
+  name: 53 4-1 둘 다 나간 뒤 목록
+  type: http
+  seq: 53
+}
+
+get {
+  url: {{baseUrl}}/community-service/chat/rooms
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}

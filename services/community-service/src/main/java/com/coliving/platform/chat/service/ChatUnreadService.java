@@ -27,10 +27,10 @@ public class ChatUnreadService {
 						lastReadMessageId, userId);
 	}
 
-	/** 내 모든 방의 안 읽은 수 합 (내가 차단한 상대 방 제외) */
+	/** 내 모든 방의 안 읽은 수 합 (내가 나간 방, 내가 차단한 상대 방 제외) */
 	@Transactional(readOnly = true)
 	public long countAllUnread(Long userId) {
-		List<ChatRoomMemberEntity> mine = chatRoomMemberRepository.findByUserId(userId);
+		List<ChatRoomMemberEntity> mine = chatRoomMemberRepository.findByUserIdAndLeftAtIsNull(userId);
 		if (mine.isEmpty()) {
 			return 0;
 		}

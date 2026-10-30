@@ -1,0 +1,15 @@
+meta {
+  name: 45 4-7 다시 나가기 (404)
+  type: http
+  seq: 45
+}
+
+post {
+  url: {{baseUrl}}/community-service/chat/rooms/{{roomId}}/leave
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId2}}
+}

@@ -49,6 +49,9 @@ public class ChatRoomEntity extends BaseTimeEntity {
 
 	private LocalDateTime lastMessageAt;
 
+	/** 종료 일시 — 누군가 나가면 종료 (다시 시작하면 새 방). 종료된 방은 pair_key 뒤에 #방ID 를 붙여 비워 둠 */
+	private LocalDateTime closedAt;
+
 	public static ChatRoomEntity create(Long buildingId, Long userA, Long userB, ChatSourceType sourceType,
 			Long sourcePostId) {
 		ChatRoomEntity room = new ChatRoomEntity();
@@ -72,6 +75,18 @@ public class ChatRoomEntity extends BaseTimeEntity {
 	/** 미리보기 100자 (DB 컬럼 길이) */
 	public static String preview(String content) {
 		return content.length() <= 100 ? content : content.substring(0, 99) + "…";
+	}
+
+	/** 한 명이라도 나가면 종료 — 같은 두 사람이 다시 채팅하면 새 방이 만들어지도록 pair_key 를 바꿔 둠 */
+	public void close() {
+		if (closedAt == null) {
+			this.closedAt = LocalDateTime.now();
+			this.pairKey = pairKey + "#" + id;
+		}
+	}
+
+	public boolean isClosed() {
+		return closedAt != null;
 	}
 
 	/** 퇴거·탈퇴 시 읽기 전용 (Kafka 이벤트에서 호출 예정) */

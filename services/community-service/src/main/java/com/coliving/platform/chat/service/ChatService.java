@@ -10,6 +10,8 @@ import com.coliving.platform.chat.entity.ChatRoomEntity;
 import com.coliving.platform.chat.entity.ChatRoomMemberEntity;
 import com.coliving.platform.chat.entity.ChatRoomMemberId;
 import com.coliving.platform.chat.entity.ChatSourceType;
+import com.coliving.platform.chat.event.ChatMessageSentEvent;
+import com.coliving.platform.chat.event.ChatRoomLeftEvent;
 import com.coliving.platform.chat.repository.ChatMessageRepository;
 import com.coliving.platform.chat.repository.ChatRoomMemberRepository;
 import com.coliving.platform.chat.repository.ChatRoomRepository;
@@ -21,6 +23,7 @@ import com.coliving.platform.common.auth.ResidentGuard;
 import com.coliving.platform.common.auth.ResidentGuard.Resident;
 import com.coliving.platform.common.exception.CommunityException;
 import com.coliving.platform.common.exception.ErrorCode;
+import com.coliving.platform.notification.service.NotificationService;
 import com.coliving.platform.post.entity.PostEntity;
 import com.coliving.platform.post.service.PostService;
 import com.coliving.platform.safety.service.BlockQueryService;
@@ -37,6 +40,7 @@ import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -63,21 +67,25 @@ public class ChatService {
 	private final UserClient userClient;
 	private final ContractClient contractClient;
 	private final PostService postService;
+	private final NotificationService notificationService;
+	private final ApplicationEventPublisher eventPublisher;
 
-	/** 4-1 채팅방 목록 — 퇴거자도 기존 방은 볼 수 있음, 내가 차단한 상대의 방은 숨김, 숨긴 메시지·삭제 메시지는 미리보기 없음 */
+	/** 4-1 채팅방 목록 — 내가 나간 방·내가 차단한 상대의 방은 숨김, 퇴거자도 기존 방은 볼 수 있음, 숨긴 메시지·삭제 메시지는 미리보기 없음 */
 	@Transactional(readOnly = true)
 	public List<ChatRoomItemDTO> getRooms(Long userId) {
-		List<ChatRoomMemberEntity> mine = chatRoomMemberRepository.findByUserId(userId);
+		List<ChatRoomMemberEntity> mine = chatRoomMemberRepository.findByUserIdAndLeftAtIsNull(userId);
 		if (mine.isEmpty()) {
 			return List.of();
 		}
 		List<Long> roomIds = mine.stream().map(ChatRoomMemberEntity::getChatRoomId).toList();
 		Map<Long, ChatRoomEntity> rooms = chatRoomRepository.findAllById(roomIds).stream()
 				.collect(Collectors.toMap(ChatRoomEntity::getId, Function.identity()));
-		Map<Long, Long> partnerByRoom = chatRoomMemberRepository.findByChatRoomIdIn(roomIds).stream()
+		Map<Long, ChatRoomMemberEntity> partnerMemberByRoom = chatRoomMemberRepository.findByChatRoomIdIn(roomIds)
+				.stream()
 				.filter(m -> !m.getUserId().equals(userId))
-				.collect(Collectors.toMap(ChatRoomMemberEntity::getChatRoomId, ChatRoomMemberEntity::getUserId,
-						(a, b) -> a));
+				.collect(Collectors.toMap(ChatRoomMemberEntity::getChatRoomId, Function.identity(), (a, b) -> a));
+		Map<Long, Long> partnerByRoom = partnerMemberByRoom.values().stream()
+				.collect(Collectors.toMap(ChatRoomMemberEntity::getChatRoomId, ChatRoomMemberEntity::getUserId));
 
 		Set<Long> blocked = blockQueryService.getBlockedUserIds(userId);
 		List<Long> userIds = new ArrayList<>(partnerByRoom.values());
@@ -95,7 +103,9 @@ public class ChatService {
 			}
 			UserSummary partner = users.get(partnerId);
 			ResidentRoom partnerRoom = residentRooms.get(partnerId);
-			boolean readOnly = room.isReadOnly() || !meActive || !isActiveResident(partner);
+			boolean partnerLeft = partnerMemberByRoom.get(room.getId()).hasLeft();
+			boolean readOnly = room.isReadOnly() || room.isClosed() || partnerLeft || !meActive
+					|| !isActiveResident(partner);
 			// 미리보기는 보는 사람 기준 — 차단 중 받은(나에게 숨긴) 메시지는 차단을 풀어도 안 보이게
 			Optional<ChatMessageDocument> last = chatMessageRepository
 					.findFirstByRoomIdAndHiddenForNotOrderByIdDesc(room.getId(), userId);
@@ -112,7 +122,8 @@ public class ChatService {
 					lastMessage,
 					lastMessageAt,
 					chatUnreadService.countUnread(room.getId(), userId, member.getLastReadMessageId()),
-					readOnly));
+					readOnly,
+					partnerLeft));
 		}
 		Comparator<ChatRoomItemDTO> byLastMessage = Comparator.comparing(ChatRoomItemDTO::lastMessageAt,
 				Comparator.nullsLast(Comparator.reverseOrder()));
@@ -121,7 +132,7 @@ public class ChatService {
 		return result;
 	}
 
-	/** 4-2 채팅방 열기 — 같은 상대와의 방이 있으면 그 방, 없으면 새로 만듦 */
+	/** 4-2 채팅방 열기 — 같은 상대와 진행 중인 방이 있으면 그 방, 없으면(누가 나가서 종료된 경우 포함) 새로 만듦 */
 	@Transactional
 	public ChatRoomOpenResponseDTO openRoom(Long userId, ChatRoomOpenRequestDTO request) {
 		Resident me = residentGuard.requireResident(userId);
@@ -192,6 +203,7 @@ public class ChatService {
 				.filter(message -> message.getRoomId().equals(roomId) && message.isVisibleTo(userId))
 				.orElseThrow(() -> new CommunityException(ErrorCode.MESSAGE_NOT_FOUND));
 		member.readUpTo(lastReadMessageId);
+		notificationService.markChatRoomRead(userId, roomId);   // 이 방의 채팅 알림도 읽음
 	}
 
 	/**
@@ -206,6 +218,9 @@ public class ChatService {
 				.orElseThrow(() -> new CommunityException(ErrorCode.ROOM_NOT_FOUND));
 		Long partnerId = findPartnerId(roomId, userId);
 
+		if (room.isClosed()) {
+			throw new CommunityException(ErrorCode.CHAT_READ_ONLY, "상대방이 대화방을 나가서 메시지를 보낼 수 없습니다.");
+		}
 		Map<Long, UserSummary> users = userClient.getUsers(List.of(userId, partnerId));
 		if (room.isReadOnly() || !isActiveResident(users.get(userId)) || !isActiveResident(users.get(partnerId))) {
 			throw new CommunityException(ErrorCode.CHAT_READ_ONLY);
@@ -221,15 +236,41 @@ public class ChatService {
 			room.updateLastMessage(trimmed, message.getSentAt());
 		}
 		member.readUpTo(message.getId());   // 내가 보낸 메시지까지는 읽은 것으로
-		// TODO(COL-33 ②): 실시간 전송 — 숨김 메시지는 보낸 사람에게만, 상대 알림도 생략
-		return ChatMessageDTO.from(message);
+
+		ChatMessageDTO result = ChatMessageDTO.from(message);
+		// 커밋 후 실시간 전송·알림 (숨김 메시지는 보낸 사람에게만)
+		eventPublisher.publishEvent(new ChatMessageSentEvent(roomId, userId, partnerId, result, blockedByPartner));
+		return result;
+	}
+
+	/**
+	 * 4-7 채팅방 나가기 — 내 목록에서 숨김, 다시 들어올 수 없음
+	 * 방은 종료(읽기 전용)되지만 상대에게는 남아 있어서 메시지·사용자 신고 가능
+	 * 둘 다 나가면 두 사람 화면에서 완전히 사라짐 (데이터는 관리자 확인용으로 보관)
+	 */
+	@Transactional
+	public void leaveRoom(Long userId, Long roomId) {
+		ChatRoomMemberEntity member = requireMember(roomId, userId);
+		ChatRoomEntity room = chatRoomRepository.findById(roomId)
+				.orElseThrow(() -> new CommunityException(ErrorCode.ROOM_NOT_FOUND));
+		member.leave();
+		room.close();
+		notificationService.markChatRoomRead(userId, roomId);   // 이 방 채팅 알림 정리
+
+		Long partnerId = chatRoomMemberRepository.findByChatRoomId(roomId).stream()
+				.filter(m -> !m.getUserId().equals(userId) && !m.hasLeft())
+				.map(ChatRoomMemberEntity::getUserId)
+				.findFirst()
+				.orElse(null);
+		eventPublisher.publishEvent(new ChatRoomLeftEvent(roomId, userId, partnerId));
 	}
 
 	// ---------- 내부 ----------
 
+	/** 참여 중인 방만 — 참여하지 않았거나 나간 방은 있는지조차 알려주지 않음 */
 	private ChatRoomMemberEntity requireMember(Long roomId, Long userId) {
-		// 참여하지 않은 방은 있는지조차 알려주지 않음
 		return chatRoomMemberRepository.findById(new ChatRoomMemberId(roomId, userId))
+				.filter(member -> !member.hasLeft())
 				.orElseThrow(() -> new CommunityException(ErrorCode.ROOM_NOT_FOUND));
 	}
 

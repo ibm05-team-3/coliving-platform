@@ -1,0 +1,21 @@
+meta {
+  name: 23 4-6 차단당한 사람이 보내기 (201)
+  type: http
+  seq: 23
+}
+
+post {
+  url: {{baseUrl}}/community-service/chat/rooms/{{roomId}}/messages
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}
+
+body:json {
+  {
+    "content": "혹시 보셨어요?"
+  }
+}

@@ -1,0 +1,15 @@
+meta {
+  name: 46 4-1 남은 사람 목록 (partnerLeft)
+  type: http
+  seq: 46
+}
+
+get {
+  url: {{baseUrl}}/community-service/chat/rooms
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}

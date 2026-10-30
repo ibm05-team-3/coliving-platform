@@ -1,0 +1,15 @@
+meta {
+  name: 41 4-7 5002 나가기
+  type: http
+  seq: 41
+}
+
+post {
+  url: {{baseUrl}}/community-service/chat/rooms/{{roomId}}/leave
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId2}}
+}

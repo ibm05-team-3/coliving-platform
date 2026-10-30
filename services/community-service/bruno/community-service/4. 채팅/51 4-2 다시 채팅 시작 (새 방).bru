@@ -1,0 +1,26 @@
+meta {
+  name: 51 4-2 다시 채팅 시작 (새 방)
+  type: http
+  seq: 51
+}
+
+post {
+  url: {{baseUrl}}/community-service/chat/rooms
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}
+
+body:json {
+  {
+    "partnerUserId": {{residentId2}},
+    "sourceType": "PROFILE"
+  }
+}
+
+script:post-response {
+  if (res.status === 200 || res.status === 201) bru.setEnvVar("newRoomId", res.body.roomId);
+}

@@ -1,5 +1,7 @@
 package com.coliving.platform.safety.service;
 
+import com.coliving.platform.chat.document.ChatMessageDocument;
+import com.coliving.platform.chat.repository.ChatMessageRepository;
 import com.coliving.platform.client.ContractClient;
 import com.coliving.platform.client.ContractClient.ResidentRoom;
 import com.coliving.platform.client.PropertyClient;
@@ -72,6 +74,7 @@ public class AdminReportService {
 	private final UserClient userClient;
 	private final ContractClient contractClient;
 	private final PropertyClient propertyClient;
+	private final ChatMessageRepository chatMessageRepository;
 
 	// ---------- 9-1 신고 목록 (대상별 묶음) ----------
 
@@ -218,8 +221,20 @@ public class AdminReportService {
 		}
 	}
 
-	/** 게시글·댓글 숨김(false) / 삭제(true). 댓글은 정상 상태였을 때만 게시글 댓글 수 -1 */
+	/** 게시글·댓글·채팅 메시지 숨김(false) / 삭제(true). 댓글은 정상 상태였을 때만 게시글 댓글 수 -1 */
 	private void moderate(ReportEntity report, boolean delete) {
+		if (report.getTargetType() == ReportTargetType.CHAT_MESSAGE) {
+			// MongoDB 는 JPA 변경 감지가 없어서 직접 저장. TODO: 채팅방 화면에 실시간 반영 (지금은 다시 불러오면 내용 null)
+			chatMessageRepository.findById(report.getTargetId()).filter(ChatMessageDocument::isActive)
+					.ifPresent(message -> {
+						message.changeStatus(delete ? ContentStatus.DELETED : ContentStatus.HIDDEN);
+						chatMessageRepository.save(message);
+					});
+			return;
+		}
+		if (report.getTargetType() == ReportTargetType.USER) {
+			return;   // 사용자 신고는 숨길 콘텐츠 없음
+		}
 		long id = Long.parseLong(report.getTargetId());
 		switch (report.getTargetType()) {
 			case POST -> postRepository.findById(id).filter(PostEntity::isActive).ifPresent(post -> {
@@ -238,7 +253,6 @@ public class AdminReportService {
 				postRepository.addCommentCount(comment.getPost().getId(), -1);
 			});
 			default -> {
-				// USER: 콘텐츠 없음 / CHAT_MESSAGE: TODO(COL-33)
 			}
 		}
 	}
@@ -330,6 +344,9 @@ public class AdminReportService {
 	}
 
 	private ContentStatus currentStatus(ReportEntity report) {
+		if (report.getTargetType() == ReportTargetType.CHAT_MESSAGE) {
+			return chatMessageRepository.findById(report.getTargetId()).map(ChatMessageDocument::getStatus).orElse(null);
+		}
 		long id;
 		try {
 			id = Long.parseLong(report.getTargetId());

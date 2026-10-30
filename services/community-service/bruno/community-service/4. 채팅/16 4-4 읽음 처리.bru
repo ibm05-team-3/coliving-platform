@@ -1,0 +1,21 @@
+meta {
+  name: 16 4-4 읽음 처리
+  type: http
+  seq: 16
+}
+
+patch {
+  url: {{baseUrl}}/community-service/chat/rooms/{{roomId}}/read
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}
+
+body:json {
+  {
+    "lastReadMessageId": "{{messageId}}"
+  }
+}

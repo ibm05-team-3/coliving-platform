@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>채팅 WebSocket 테스트</title>
+<!-- 개발용 테스트 페이지 (http://localhost:8084/dev/chat-test.html) — 프론트 연동이 끝나면 삭제해도 됨 -->
+<script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 16px; background: #f6f7f9; color: #222; }
+  h1 { font-size: 18px; margin: 0 0 4px; }
+  p.desc { margin: 0 0 16px; color: #666; font-size: 13px; }
+  .panels { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; }
+  .panel { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 12px; }
+  .row { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; flex-wrap: wrap; }
+  label { font-size: 13px; }
+  input[type=text], input[type=number] { padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
+  input.id { width: 80px; } input.msg { flex: 1; min-width: 120px; }
+  button { padding: 6px 10px; border: 1px solid #888; background: #fff; border-radius: 4px; cursor: pointer; }
+  button:disabled { opacity: .4; cursor: default; }
+  .status { font-size: 12px; padding: 2px 6px; border-radius: 4px; background: #eee; }
+  .status.on { background: #d7f5dd; color: #11632a; }
+  .log { height: 360px; overflow-y: auto; background: #111; color: #ddd; font: 12px/1.5 ui-monospace, monospace;
+         padding: 8px; border-radius: 4px; white-space: pre-wrap; word-break: break-all; }
+  .evt { color: #d6a8ff; } .chat { color: #8fd3ff; } .noti { color: #ffd479; } .err { color: #ff8a8a; } .sys { color: #9a9a9a; }
+</style>
+</head>
+<body>
+<h1>채팅 WebSocket 테스트 (4-5)</h1>
+<p class="desc">왼쪽·오른쪽에 서로 다른 사용자로 연결해서 실시간으로 주고받는지 확인해요. 로그 색: <span class="chat">■ 채팅</span> <span class="noti">■ 알림</span> <span class="err">■ 오류</span> <span class="evt">■ 채팅방(상대 나감)</span></p>
+<div class="panels" id="panels"></div>
+
+<template id="panel-template">
+  <div class="panel">
+    <div class="row">
+      <label>X-User <input class="id user-id" type="number"></label>
+      <label><input class="admin" type="checkbox"> 관리자 알림 구독</label>
+      <button class="connect">연결</button>
+      <button class="disconnect" disabled>끊기</button>
+      <span class="status">끊김</span>
+    </div>
+    <div class="row">
+      <label>roomId <input class="id room-id" type="number" value="1"></label>
+      <input class="msg" type="text" placeholder="메시지 입력 후 Enter">
+      <button class="send" disabled>보내기</button>
+    </div>
+    <div class="log"></div>
+  </div>
+</template>
+
+<script>
+  const WS_URL = (location.protocol === "https:" ? "wss://" : "ws://") + location.host + "/community-service/ws";
+  const DEFAULT_USERS = [5001, 5002];
+
+  function createPanel(defaultUserId) {
+    const node = document.getElementById("panel-template").content.firstElementChild.cloneNode(true);
+    const $ = (selector) => node.querySelector(selector);
+    $(".user-id").value = defaultUserId;
+    let client = null;
+
+    function log(kind, text) {
+      const line = document.createElement("div");
+      line.className = kind;
+      line.textContent = "[" + new Date().toLocaleTimeString() + "] " + text;
+      $(".log").appendChild(line);
+      $(".log").scrollTop = $(".log").scrollHeight;
+    }
+
+    function setConnected(connected) {
+      $(".connect").disabled = connected;
+      $(".disconnect").disabled = !connected;
+      $(".send").disabled = !connected;
+      $(".user-id").disabled = connected;
+      $(".admin").disabled = connected;
+      $(".status").textContent = connected ? "연결됨 (" + $(".user-id").value + ")" : "끊김";
+      $(".status").classList.toggle("on", connected);
+    }
+
+    function handleConnect() {
+      const userId = $(".user-id").value.trim();
+      client = new StompJs.Client({
+        brokerURL: WS_URL,
+        connectHeaders: { "X-User": userId },
+        reconnectDelay: 0,
+        onConnect: () => {
+          setConnected(true);
+          log("sys", "연결 성공 — " + userId);
+          client.subscribe("/user/queue/chat", (frame) => log("chat", "채팅 " + frame.body));
+          client.subscribe("/user/queue/notifications", (frame) => log("noti", "알림 " + frame.body));
+          client.subscribe("/user/queue/errors", (frame) => log("err", "오류 " + frame.body));
+          client.subscribe("/user/queue/chat-events", (frame) => log("evt", "채팅방 " + frame.body));
+          if ($(".admin").checked) {
+            client.subscribe("/topic/admin/notifications", (frame) => log("noti", "관리자 알림 " + frame.body));
+          }
+        },
+        onStompError: (frame) => log("err", "STOMP ERROR " + (frame.headers.message || "") + " " + frame.body),
+        onWebSocketClose: () => { setConnected(false); log("sys", "연결 끊김"); },
+      });
+      client.activate();
+    }
+
+    function handleDisconnect() {
+      if (client) client.deactivate();
+    }
+
+    function handleSend() {
+      const roomId = $(".room-id").value.trim();
+      const content = $(".msg").value;
+      client.publish({ destination: "/app/chat/" + roomId, body: JSON.stringify({ content }) });
+      log("sys", "보냄 → /app/chat/" + roomId + " " + JSON.stringify({ content }));
+      $(".msg").value = "";
+    }
+
+    $(".connect").addEventListener("click", handleConnect);
+    $(".disconnect").addEventListener("click", handleDisconnect);
+    $(".send").addEventListener("click", handleSend);
+    $(".msg").addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !$(".send").disabled) handleSend();
+    });
+    return node;
+  }
+
+  DEFAULT_USERS.forEach((userId) => document.getElementById("panels").appendChild(createPanel(userId)));
+</script>
+</body>
+</html>
