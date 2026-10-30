@@ -1,0 +1,22 @@
+meta {
+  name: 4-2 같은 상대 다시 열기 → 기존 방 200 created false
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/community-service/chat/rooms
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId2}}
+}
+
+body:json {
+  {
+    "partnerUserId": {{residentId}},
+    "sourceType": "PROFILE"
+  }
+}

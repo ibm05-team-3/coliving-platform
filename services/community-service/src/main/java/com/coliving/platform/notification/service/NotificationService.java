@@ -1,5 +1,6 @@
 package com.coliving.platform.notification.service;
 
+import com.coliving.platform.chat.service.ChatUnreadService;
 import com.coliving.platform.common.auth.ResidentGuard;
 import com.coliving.platform.common.dto.PageResponse;
 import com.coliving.platform.common.entity.SenderType;
@@ -37,6 +38,7 @@ public class NotificationService {
 	private final NoteThreadRepository noteThreadRepository;
 	private final NoteRepository noteRepository;
 	private final ResidentGuard residentGuard;
+	private final ChatUnreadService chatUnreadService;
 
 	// ---------- 저장 (다른 기능에서 호출) ----------
 
@@ -69,7 +71,7 @@ public class NotificationService {
 		return PageResponse.of(result, content);
 	}
 
-	/** 6-2 안 읽은 수 — 사용자: 안 읽은 받은 쪽지 / 관리자: 미답변 쪽지함 수 */
+	/** 6-2 안 읽은 수 — 사용자: 안 읽은 받은 쪽지·채팅 / 관리자: 미답변 쪽지함 수 (관리자는 채팅 없음) */
 	@Transactional(readOnly = true)
 	public UnreadSummaryDTO getUnreadSummary(Long userId) {
 		Receiver receiver = receiverOf(userId);
@@ -81,7 +83,7 @@ public class NotificationService {
 					.map(thread -> noteRepository.countByNoteThread_IdAndSenderTypeAndReadAtIsNull(thread.getId(), SenderType.ADMIN))
 					.orElse(0L);
 		}
-		long chat = 0;   // TODO(COL-33): 안 읽은 채팅 수
+		long chat = receiver.type() == SenderType.ADMIN ? 0 : chatUnreadService.countAllUnread(userId);
 		long notification = notificationRepository.countUnread(receiver.type(), receiver.ids());
 		return new UnreadSummaryDTO(note, chat, notification, note + chat);
 	}

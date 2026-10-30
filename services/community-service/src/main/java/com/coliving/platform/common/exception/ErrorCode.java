@@ -27,6 +27,7 @@ public enum ErrorCode {
 	OTHER_BUILDING(HttpStatus.FORBIDDEN, "다른 건물의 정보는 볼 수 없습니다."),
 	SANCTIONED(HttpStatus.FORBIDDEN, "커뮤니티 이용이 제한된 상태입니다."),
 	CHAT_NOT_AVAILABLE(HttpStatus.FORBIDDEN, "지금은 이 사용자와 채팅할 수 없습니다."),
+	CHAT_READ_ONLY(HttpStatus.FORBIDDEN, "읽기 전용 채팅방이라 메시지를 보낼 수 없습니다."),
 	CANNOT_REPORT_SELF(HttpStatus.FORBIDDEN, "본인은 신고할 수 없습니다."),
 	CANNOT_BLOCK_SELF(HttpStatus.FORBIDDEN, "본인은 차단할 수 없습니다."),
 	ADMIN_ONLY(HttpStatus.FORBIDDEN, "관리자만 이용할 수 있습니다."),

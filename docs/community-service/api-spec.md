@@ -75,7 +75,8 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 | 401 | UNAUTHORIZED | 토큰 없음·만료 |
 | 403 | NOT_RESIDENT, NOT_OWNER, OTHER_BUILDING | 입주자 아님, 본인 글 아님, 다른 건물 |
 | 403 | SANCTIONED | 이용 제한·정지 중 글·댓글·채팅 작성 (0-6 참고) |
-| 403 | CHAT_NOT_AVAILABLE | 차단 관계 등으로 채팅 불가 (차단 사실은 알리지 않음) |
+| 403 | CHAT_NOT_AVAILABLE | 본인·입주자가 아닌 상대와 채팅, 내가 차단한 상대에게 채팅 (상대가 나를 차단한 경우는 오류 없이 처리 — 0-6) |
+| 403 | CHAT_READ_ONLY | 읽기 전용 채팅방(본인·상대 퇴거)에 메시지 전송 |
 | 403 | CANNOT_REPORT_SELF, CANNOT_BLOCK_SELF | 본인 신고·차단 |
 | 403 | ADMIN_ONLY | 관리자 API를 관리자가 아닌 사용자가 호출 |
 | 404 | POST_NOT_FOUND, COMMENT_NOT_FOUND, THREAD_NOT_FOUND, ROOM_NOT_FOUND, DOCUMENT_NOT_FOUND, MESSAGE_NOT_FOUND, USER_NOT_FOUND, REPORT_NOT_FOUND, SANCTION_NOT_FOUND, BLOCK_NOT_FOUND, NOTIFICATION_NOT_FOUND | 대상 없음 |
@@ -123,6 +124,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 | 4-3 | GET | `/community-service/chat/rooms/{roomId}/messages` | 입주자 | 메시지 목록 |
 | 4-4 | PATCH | `/community-service/chat/rooms/{roomId}/read` | 입주자 | 읽음 처리 |
 | 4-5 | WS | `/community-service/ws` (STOMP) | 회원 | 실시간 채팅·알림 |
+| 4-6 | POST | `/community-service/chat/rooms/{roomId}/messages` | 입주자 | 메시지 보내기 (REST — WebSocket 대체·테스트용) |
 | 5-1 | GET | `/community-service/posts` | 입주자 | 게시글 목록 |
 | 5-2 | GET | `/community-service/posts/{postId}` | 입주자 | 게시글 상세 (조회수 증가) |
 | 5-3 | POST | `/community-service/posts` | 입주자·관리자 | 게시글 작성 |
@@ -159,10 +161,10 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 
 | 구분 | 적용 API | 처리 |
 |---|---|---|
-| 이용 제한·정지 중 (`RESTRICTION` 기간 내, `SUSPENSION` 해제 전) | 5-3 게시글 작성, 5-4 수정, 5-6 댓글 작성, 5-7 수정, 4-2 채팅방 생성, 4-5 메시지 전송, 8-1 신고 | **403 SANCTIONED** (아래 예시). 읽기·쪽지(관리자 문의)·FAQ 봇·차단 관리는 계속 가능 |
+| 이용 제한·정지 중 (`RESTRICTION` 기간 내, `SUSPENSION` 해제 전) | 5-3 게시글 작성, 5-4 수정, 5-6 댓글 작성, 5-7 수정, 4-2 채팅방 생성, 4-5·4-6 메시지 전송, 8-1 신고 | **403 SANCTIONED** (아래 예시). 읽기·쪽지(관리자 문의)·FAQ 봇·차단 관리는 계속 가능 |
 | 경고 (`WARNING`) | — | 기능 제한 없음, 알림만 발송 |
-| 차단 (내가 상대를 차단) | 5-1 목록, 5-2 상세, 4-1 채팅방 목록 | 상대 게시글 목록에서 제외, 상대 댓글은 `blocked = true`·내용 null (접힘 표시), 상대와의 채팅방 숨김 |
-| 차단 (상대가 나를 차단) | 4-2 채팅방 생성, 4-5 메시지 전송 | **403 CHAT_NOT_AVAILABLE** — 일반 문구만, 차단 사실은 알리지 않음 |
+| 차단 (내가 상대를 차단) | 5-1 목록, 5-2 상세, 4-1 채팅방 목록, 4-2 채팅방 열기, 4-5·4-6 메시지 전송 | 상대 게시글 목록에서 제외, 상대 댓글은 `blocked = true`·내용 null (접힘 표시), 상대와의 채팅방 숨김, 상대에게 채팅 시도 시 403 CHAT_NOT_AVAILABLE |
+| 차단 (상대가 나를 차단) | 4-2 채팅방 열기, 4-5·4-6 메시지 전송 | **오류 없이 정상 처리** (카카오톡 방식) — 내 화면에는 보낸 메시지가 그대로 보이지만, 상대에게는 숨김(`hiddenFor`). 상대가 차단을 풀어도 차단 기간 중 메시지는 보이지 않고, 안 읽은 수·미리보기·알림에도 잡히지 않음 |
 | 공통 | 관리자 공지(NOTICE)·쪽지 | 차단·제재와 관계없이 항상 노출 |
 | 제재 상태 확인 | 서버 내부 | Redis `sanction:active:{userId}` 캐시 → 없으면 `user_sanctions` 조회 |
 
@@ -487,7 +489,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 | [].partner.name | String | 상대 이름 (유저 서비스) |
 | [].partner.profileImageUrl | String \| null | 프로필 이미지 |
 | [].partner.roomNumber | String | 상대 호실 (계약 서비스) |
-| [].lastMessage | String \| null | 마지막 메시지 미리보기 |
+| [].lastMessage | String \| null | 마지막 메시지 미리보기 (나에게 숨긴 메시지 제외, 숨김·삭제된 메시지면 null) |
 | [].lastMessageAt | DateTime \| null | 마지막 메시지 일시 (정렬 기준) |
 | [].unreadCount | Integer | 안 읽은 메시지 수 |
 | [].readOnly | Boolean | 읽기 전용 (상대·본인 퇴거 시 true) |
@@ -498,7 +500,7 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 |---|---|
 | Method / URL | `POST /community-service/chat/rooms` |
 | 권한 | 입주자 |
-| 설명 | 같은 상대와의 방이 있으면 기존 방 반환. 다른 건물·퇴거자·본인과는 403. 상대가 나를 차단했으면 403 CHAT_NOT_AVAILABLE, 제재 중이면 403 SANCTIONED |
+| 설명 | 같은 상대와의 방이 있으면 기존 방 반환. 다른 건물·퇴거자·본인과는 403. 내가 차단한 상대면 403 CHAT_NOT_AVAILABLE, 제재 중이면 403 SANCTIONED. 상대가 나를 차단한 경우는 정상으로 열림 (차단 사실을 알리지 않음) |
 
 **Request**
 ```json
@@ -520,6 +522,12 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 |---|---|---|
 | roomId | Long | 채팅방 ID |
 | created | Boolean | 새로 생성됐는지 |
+
+| 오류 | 상황 |
+|---|---|
+| 403 CHAT_NOT_AVAILABLE | 본인, 상대가 입주자가 아님(퇴거 등), 내가 차단한 상대 |
+| 403 OTHER_BUILDING | 다른 건물 입주자 |
+| 404 USER_NOT_FOUND | 없는 회원 |
 
 ### 4-3. 메시지 목록 (위로 스크롤 시 이전 메시지)
 
@@ -554,6 +562,8 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 | messages[].sentAt | DateTime | 보낸 일시 |
 | hasMore | Boolean | 이전 메시지가 더 있는지 |
 
+메시지는 오래된 것 → 최신 순. 나에게 숨긴 메시지(차단 중 받은 메시지)는 빠짐. 참여하지 않은 방은 404 ROOM_NOT_FOUND
+
 ### 4-4. 읽음 처리
 
 | 항목 | 내용 |
@@ -572,6 +582,10 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 
 **Response 204** — Body 없음
 
+| 오류 | 상황 |
+|---|---|
+| 404 MESSAGE_NOT_FOUND | 이 방의 메시지가 아님 |
+
 ### 4-5. 실시간 (WebSocket + STOMP)
 
 | 구분 | 경로 | 설명 |
@@ -581,6 +595,29 @@ throw new ErrorResponseException(HttpStatus.NOT_FOUND,
 | 메시지 수신 | SUBSCRIBE `/topic/chat/{roomId}` | 4-3 `messages[]` 항목과 같은 구조 |
 | 알림 수신 | SUBSCRIBE `/user/queue/notifications` | 6-1 알림 항목과 같은 구조 (쪽지·채팅·댓글) |
 | 오류 수신 | SUBSCRIBE `/user/queue/errors` | `{ "code": "CHAT_READ_ONLY", "message": "..." }` — code: `CHAT_READ_ONLY`, `SANCTIONED`, `CHAT_NOT_AVAILABLE` |
+
+
+### 4-6. 메시지 보내기 (REST)
+
+| 항목 | 내용 |
+|---|---|
+| Method / URL | `POST /community-service/chat/rooms/{roomId}/messages` |
+| 권한 | 해당 방 참여자 (입주자) |
+| 설명 | 4-5 WebSocket SEND와 같은 처리. WebSocket 연결이 안 될 때 대신 쓰거나 테스트용. 읽기 전용 → 403 CHAT_READ_ONLY, 제재 중 → 403 SANCTIONED, 내가 차단한 상대 → 403 CHAT_NOT_AVAILABLE. 상대가 나를 차단했으면 201로 정상 응답하지만 상대에게는 보이지 않음 (0-6) |
+
+**Request**
+```json
+{ "content": "내일 라운지에서 봬요!" }
+```
+
+| 필드 | 타입 | 필수 | 설명 |
+|---|---|---|---|
+| content | String | O | 1~1,000자 |
+
+**Response 201** — 4-3 `messages[]` 항목과 같은 구조
+```json
+{ "messageId": "6712f0a1c3e5b2a1f0000001", "senderId": 5001, "content": "내일 라운지에서 봬요!", "status": "ACTIVE", "sentAt": "2025-10-18T21:03:00" }
+```
 
 ---
 

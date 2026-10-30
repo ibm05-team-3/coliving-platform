@@ -27,7 +27,7 @@ public class ResidentGuard {
 	/** 입주자가 아니면 403 NOT_RESIDENT */
 	public Resident requireResident(Long userId) {
 		UserSummary user = userClient.getUser(userId);
-		if (user == null || !ACTIVE_RESIDENT_STATUSES.contains(user.residentStatus())) {
+		if (user == null || user.residentStatus() == null || !ACTIVE_RESIDENT_STATUSES.contains(user.residentStatus())) {
 			throw new CommunityException(ErrorCode.NOT_RESIDENT);
 		}
 		ResidentRoom room = contractClient.getResidentRooms(List.of(userId)).get(userId);

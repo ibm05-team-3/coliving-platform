@@ -1,0 +1,21 @@
+meta {
+  name: 4-6 5002 답장 201
+  type: http
+  seq: 9
+}
+
+post {
+  url: {{baseUrl}}/community-service/chat/rooms/{{roomId}}/messages
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId2}}
+}
+
+body:json {
+  {
+    "content": "좋아요! 몇 시에 볼까요?"
+  }
+}

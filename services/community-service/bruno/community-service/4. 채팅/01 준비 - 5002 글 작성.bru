@@ -1,0 +1,27 @@
+meta {
+  name: 준비: 5002 글 작성 (채팅 시작 위치)
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/community-service/posts
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId2}}
+}
+
+body:json {
+  {
+    "category": "FREE",
+    "title": "주말에 같이 장 보실 분",
+    "content": "토요일 오전에 마트 가요."
+  }
+}
+
+script:post-response {
+  if (res.status === 201) bru.setEnvVar("otherPostId", res.body.postId);
+}

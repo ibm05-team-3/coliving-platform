@@ -1,0 +1,22 @@
+meta {
+  name: 4-2 sourceType POST인데 sourcePostId 없음 400
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/community-service/chat/rooms
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}
+
+body:json {
+  {
+    "partnerUserId": {{residentId3}},
+    "sourceType": "POST"
+  }
+}

@@ -1,0 +1,19 @@
+meta {
+  name: 4-3 최근 2개 → hasMore true
+  type: http
+  seq: 13
+}
+
+get {
+  url: {{baseUrl}}/community-service/chat/rooms/{{roomId}}/messages?size=2
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}
+
+script:post-response {
+  if (res.status === 200 && res.body.messages.length > 0) bru.setEnvVar("beforeId", res.body.messages[0].messageId);
+}
