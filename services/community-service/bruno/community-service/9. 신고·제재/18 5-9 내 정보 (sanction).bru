@@ -1,0 +1,15 @@
+meta {
+  name: 5-9 5003 내 커뮤니티 정보 — sanction 채워짐
+  type: http
+  seq: 18
+}
+
+get {
+  url: {{baseUrl}}/community-service/me/summary
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId3}}
+}

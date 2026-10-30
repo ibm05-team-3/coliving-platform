@@ -1,0 +1,23 @@
+meta {
+  name: 5-3 5003 글쓰기 → 201
+  type: http
+  seq: 25
+}
+
+post {
+  url: {{baseUrl}}/community-service/posts
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId3}}
+}
+
+body:json {
+  {
+    "category": "FREE",
+    "title": "죄송합니다",
+    "content": "앞으로 조심할게요"
+  }
+}

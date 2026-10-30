@@ -1,0 +1,30 @@
+meta {
+  name: 8-1 5001이 5003 댓글 신고 (ABUSE) 201
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/community-service/reports
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}
+
+body:json {
+  {
+    "sourceType": "POST",
+    "sourceId": {{otherPostId}},
+    "targetType": "COMMENT",
+    "targetId": "{{commentId}}",
+    "reasonType": "ABUSE",
+    "reasonDetail": "욕설·비하 표현이 있어요."
+  }
+}
+
+script:post-response {
+  if (res.status === 201) bru.setEnvVar("reportId", res.body.reportId);
+}

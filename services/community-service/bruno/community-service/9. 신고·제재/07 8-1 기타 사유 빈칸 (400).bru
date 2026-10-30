@@ -1,0 +1,25 @@
+meta {
+  name: 8-1 ETC인데 상세 내용 없음 → 400
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/community-service/reports
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId2}}
+}
+
+body:json {
+  {
+    "sourceType": "POST",
+    "sourceId": {{otherPostId}},
+    "targetType": "POST",
+    "targetId": "{{otherPostId}}",
+    "reasonType": "ETC"
+  }
+}

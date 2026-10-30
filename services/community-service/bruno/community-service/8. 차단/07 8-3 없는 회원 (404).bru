@@ -1,0 +1,21 @@
+meta {
+  name: 8-3 없는 회원 → 404 USER_NOT_FOUND
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{baseUrl}}/community-service/blocks
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}
+
+body:json {
+  {
+    "blockedUserId": 99999
+  }
+}

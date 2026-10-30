@@ -1,0 +1,15 @@
+meta {
+  name: 9-2 신고 상세 — 스냅샷·신고 2건·이력
+  type: http
+  seq: 11
+}
+
+get {
+  url: {{baseUrl}}/community-service/admin/reports/{{reportId}}
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{adminId}}
+}

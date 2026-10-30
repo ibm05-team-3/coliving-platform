@@ -1,0 +1,21 @@
+meta {
+  name: 준비: 5002가 5001 글에 댓글
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/community-service/posts/{{postId}}/comments
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId2}}
+}
+
+body:json {
+  {
+    "content": "몇 명 모이나요?"
+  }
+}

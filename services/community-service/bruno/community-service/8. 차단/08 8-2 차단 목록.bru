@@ -1,0 +1,15 @@
+meta {
+  name: 8-2 차단 목록 (박준영 · 201호)
+  type: http
+  seq: 8
+}
+
+get {
+  url: {{baseUrl}}/community-service/blocks
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}

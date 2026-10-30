@@ -1,0 +1,15 @@
+meta {
+  name: 5-2 상세 (5001) — 5002 댓글 blocked true, content null
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{baseUrl}}/community-service/posts/{{postId}}
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}

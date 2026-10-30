@@ -1,0 +1,15 @@
+meta {
+  name: 9-1 입주자가 관리자 API → 403 ADMIN_ONLY
+  type: http
+  seq: 10
+}
+
+get {
+  url: {{baseUrl}}/community-service/admin/reports
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}
