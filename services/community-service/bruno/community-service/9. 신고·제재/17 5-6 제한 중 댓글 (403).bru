@@ -1,0 +1,21 @@
+meta {
+  name: 5-6 5003 댓글 → 403 SANCTIONED
+  type: http
+  seq: 17
+}
+
+post {
+  url: {{baseUrl}}/community-service/posts/{{otherPostId}}/comments
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId3}}
+}
+
+body:json {
+  {
+    "content": "제한 중 댓글"
+  }
+}

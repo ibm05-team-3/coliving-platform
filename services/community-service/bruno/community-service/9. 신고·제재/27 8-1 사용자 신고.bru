@@ -1,0 +1,30 @@
+meta {
+  name: 8-1 5001이 사용자 5003 신고 (USER) 201
+  type: http
+  seq: 27
+}
+
+post {
+  url: {{baseUrl}}/community-service/reports
+  body: json
+  auth: none
+}
+
+headers {
+  X-User: {{residentId}}
+}
+
+body:json {
+  {
+    "sourceType": "POST",
+    "sourceId": {{otherPostId}},
+    "targetType": "USER",
+    "targetId": "{{residentId3}}",
+    "reasonType": "HOUSE_RULE",
+    "reasonDetail": "밤늦게 라운지에서 소란"
+  }
+}
+
+script:post-response {
+  if (res.status === 201) bru.setEnvVar("userReportId", res.body.reportId);
+}

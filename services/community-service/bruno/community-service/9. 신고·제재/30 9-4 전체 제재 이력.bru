@@ -1,0 +1,15 @@
+meta {
+  name: 9-4 제재 목록 (activeOnly=false) — 해제된 제한 + 경고
+  type: http
+  seq: 30
+}
+
+get {
+  url: {{baseUrl}}/community-service/admin/sanctions?activeOnly=false
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{adminId}}
+}

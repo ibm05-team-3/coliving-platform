@@ -1,0 +1,15 @@
+meta {
+  name: 9-4 제재 목록 (진행 중)
+  type: http
+  seq: 21
+}
+
+get {
+  url: {{baseUrl}}/community-service/admin/sanctions
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{adminId}}
+}

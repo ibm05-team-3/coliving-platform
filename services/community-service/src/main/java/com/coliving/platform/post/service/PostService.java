@@ -28,7 +28,9 @@ import com.coliving.platform.post.repository.CommentRepository;
 import com.coliving.platform.post.repository.PostRepository;
 import com.coliving.platform.post.repository.PostSpecs;
 import com.coliving.platform.safety.service.BlockQueryService;
+import com.coliving.platform.safety.dto.MySanctionDTO;
 import com.coliving.platform.safety.service.SanctionGuard;
+import com.coliving.platform.safety.service.SanctionQueryService;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -60,6 +62,7 @@ public class PostService {
 	private final ResidentGuard residentGuard;
 	private final BlockQueryService blockQueryService;
 	private final SanctionGuard sanctionGuard;
+	private final SanctionQueryService sanctionQueryService;
 	private final UserClient userClient;
 	private final ContractClient contractClient;
 	private final StringRedisTemplate redisTemplate;
@@ -197,7 +200,9 @@ public class PostService {
 				.stream()
 				.map(post -> new PopularPostDTO(post.getId(), post.getTitle(), post.getViewCount(), post.getCommentCount()))
 				.toList();
-		return new MySummaryDTO(me.name(), me.buildingName(), me.roomNumber(), postCount, receivedComments, null, popular);
+		MySanctionDTO sanction = sanctionQueryService.getMySanction(userId);
+		return new MySummaryDTO(me.name(), me.buildingName(), me.roomNumber(), postCount, receivedComments,
+				sanction.active() ? sanction : null, popular);
 	}
 
 	// ---------- 내부 ----------

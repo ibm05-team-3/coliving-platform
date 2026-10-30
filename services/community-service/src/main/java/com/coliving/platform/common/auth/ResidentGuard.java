@@ -43,6 +43,13 @@ public class ResidentGuard {
 		return user != null && "ADMIN".equals(user.role());
 	}
 
+	/** 관리자가 아니면 403 ADMIN_ONLY */
+	public void requireAdmin(Long userId) {
+		if (!isAdmin(userId)) {
+			throw new CommunityException(ErrorCode.ADMIN_ONLY);
+		}
+	}
+
 	/** 같은 건물이 아니면 403 OTHER_BUILDING */
 	public void requireSameBuilding(Resident resident, Long buildingId) {
 		if (!resident.buildingId().equals(buildingId)) {

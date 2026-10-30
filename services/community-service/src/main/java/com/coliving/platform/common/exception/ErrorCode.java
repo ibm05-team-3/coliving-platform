@@ -29,6 +29,7 @@ public enum ErrorCode {
 	CHAT_NOT_AVAILABLE(HttpStatus.FORBIDDEN, "지금은 이 사용자와 채팅할 수 없습니다."),
 	CANNOT_REPORT_SELF(HttpStatus.FORBIDDEN, "본인은 신고할 수 없습니다."),
 	CANNOT_BLOCK_SELF(HttpStatus.FORBIDDEN, "본인은 차단할 수 없습니다."),
+	ADMIN_ONLY(HttpStatus.FORBIDDEN, "관리자만 이용할 수 있습니다."),
 
 	// 404
 	POST_NOT_FOUND(HttpStatus.NOT_FOUND, "게시글을 찾을 수 없습니다."),

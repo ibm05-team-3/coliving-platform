@@ -1,0 +1,15 @@
+meta {
+  name: 5-2 5002가 글 보기 — 5003 댓글 HIDDEN, content null
+  type: http
+  seq: 19
+}
+
+get {
+  url: {{baseUrl}}/community-service/posts/{{otherPostId}}
+  body: none
+  auth: none
+}
+
+headers {
+  X-User: {{residentId2}}
+}

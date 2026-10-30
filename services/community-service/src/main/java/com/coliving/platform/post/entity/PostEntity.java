@@ -92,6 +92,11 @@ public class PostEntity extends BaseTimeEntity {
 		this.deletedAt = LocalDateTime.now();
 	}
 
+	/** 관리자 숨김 (신고 처리) */
+	public void hide() {
+		this.status = ContentStatus.HIDDEN;
+	}
+
 	public boolean isActive() {
 		return status == ContentStatus.ACTIVE;
 	}
